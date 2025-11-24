@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 import { Telegraf } from 'telegraf';
+import { CronJob } from 'cron';
 
 dotenv.config();
 
@@ -15,7 +16,21 @@ class TgBot {
 
   launch() {
     this.bot.launch();
+    this.initNotifications();
     console.log('Бот запущен');
+  }
+
+  initNotifications = () => {
+    CronJob.from({
+      cronTime: '* * * * * *',
+      onTick: this.executeSubscriptionDebtNotification,
+      start: true,
+      timeZone: 'Europe/Moscow'
+    });
+  }
+
+  executeSubscriptionDebtNotification = () => {
+    console.log('executeSubscriptionDebtNotification');
   }
 }
 
