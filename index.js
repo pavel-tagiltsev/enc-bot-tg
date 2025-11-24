@@ -11,11 +11,11 @@ class TgBot {
     this.bot.start((ctx) => ctx.reply('Привет!'));
     this.bot.help((ctx) => ctx.reply('Чем могу помочь? Напишите что-нибудь!'));
     this.bot.hears('Привет', (ctx) => ctx.reply('Привет! Как дела?'));
-    this.bot.on('text', (ctx) => ctx.reply('Вы написали: ' + ctx.message.text));
   }
 
   launch() {
     this.bot.launch();
+    this.initCommands();
     this.initNotifications();
     console.log('Бот запущен');
   }
@@ -27,6 +27,10 @@ class TgBot {
       start: true,
       timeZone: 'Europe/Moscow'
     });
+  }
+
+  initCommands = () => {
+    this.bot.command('subscription_debts', this.executeSubscriptionDebtNotification);
   }
 
   executeSubscriptionDebtNotification = () => {
