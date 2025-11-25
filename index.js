@@ -18,7 +18,7 @@ class TgBot {
     this.bot.launch();
     this.initCommands();
     this.initNotifications();
-    console.log('Бот запущен');
+    console.log('TgBot.launch');
   }
 
   initNotifications = () => {
@@ -28,17 +28,19 @@ class TgBot {
       start: true,
       timeZone: 'Europe/Moscow'
     });
+    console.log('TgBot.initNotifications');
   }
 
   initCommands = () => {
     this.bot.command('subscription_debts', this.executeSubscriptionDebtNotification);
+    console.log('TgBot.initCommands');
   }
 
   executeSubscriptionDebtNotification = async () => {
     await moyKlassAPI.setToken();
     const lessons = await moyKlassAPI.get('/lessons');
     await moyKlassAPI.revokeToken();
-    console.log('executeSubscriptionDebtNotification', lessons);
+    console.log('TgBot.executeSubscriptionDebtNotification', lessons);
   }
 }
 
