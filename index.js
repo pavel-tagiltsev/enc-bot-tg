@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 import { Telegraf } from 'telegraf';
 import { CronJob } from 'cron';
+import moyKlassAPI from './MoyKlassAPI.js';
 
 dotenv.config();
 
@@ -22,7 +23,7 @@ class TgBot {
 
   initNotifications = () => {
     CronJob.from({
-      cronTime: '* * * * * *',
+      cronTime: '* * * * *',
       onTick: this.executeSubscriptionDebtNotification,
       start: true,
       timeZone: 'Europe/Moscow'
@@ -33,8 +34,11 @@ class TgBot {
     this.bot.command('subscription_debts', this.executeSubscriptionDebtNotification);
   }
 
-  executeSubscriptionDebtNotification = () => {
-    console.log('executeSubscriptionDebtNotification');
+  executeSubscriptionDebtNotification = async () => {
+    await moyKlassAPI.setToken();
+    const lessons = await moyKlassAPI.get('/lessons');
+    await moyKlassAPI.revokeToken();
+    console.log('executeSubscriptionDebtNotification', lessons);
   }
 }
 
