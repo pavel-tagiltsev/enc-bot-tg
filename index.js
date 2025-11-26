@@ -32,15 +32,40 @@ class TgBot {
   }
 
   initCommands = () => {
-    this.bot.command('subscription_debts', this.executeSubscriptionDebtNotification);
+    this.bot.command('subscription_debts', (ctx) => this.executeSubscriptionDebtNotification(ctx));
     console.log('TgBot.initCommands');
   }
 
-  executeSubscriptionDebtNotification = async () => {
+  executeSubscriptionDebtNotification = async (ctx = null) => {
     await moyKlassAPI.setToken();
-    const lessons = await moyKlassAPI.get('/lessons');
+    const invoicesRes = await moyKlassAPI.get('/invoices', {
+      params: {
+        createdAt: ['2025-09-01', '2025-11-26'],
+        includeUserSubscriptions: true
+      }
+    });
+
+    const invoicesWithDebts = invoicesRes.invoices.filter((invoice) => {
+      return invoice.price !== invoice.payed && new Date(invoice.payUntil) < new Date();
+    });
+
+    const usersRes = await moyKlassAPI.get('/users', {
+      params: {
+        userIds: [...new Set(invoicesWithDebts.map((invoice) => invoice.userId))],
+      }
+    });
     await moyKlassAPI.revokeToken();
-    console.log('TgBot.executeSubscriptionDebtNotification', lessons);
+
+    const users = [...new Set(usersRes.users.map((user) => user.name))];
+
+    console.log('TgBot.executeSubscriptionDebtNotification', users.length);
+
+    if (ctx) {
+      ctx.reply(users.join(','));
+      return;
+    }
+
+    this.bot.telegram.sendMessage(process.env.DEVELOPER_CHAT_ID, users);
   }
 }
 
