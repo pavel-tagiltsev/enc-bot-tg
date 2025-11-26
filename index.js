@@ -15,28 +15,30 @@ class TgBot {
   }
 
   launch() {
+    console.log('TgBot.launch');
     this.bot.launch();
     this.initCommands();
     this.initNotifications();
-    console.log('TgBot.launch');
   }
 
   initNotifications = () => {
+    console.log('TgBot.initNotifications');
     CronJob.from({
       cronTime: '* * * * *',
       onTick: this.executeSubscriptionDebtNotification,
       start: true,
       timeZone: 'Europe/Moscow'
     });
-    console.log('TgBot.initNotifications');
   }
 
   initCommands = () => {
-    this.bot.command('subscription_debts', (ctx) => this.executeSubscriptionDebtNotification(ctx));
     console.log('TgBot.initCommands');
+    this.bot.command('subscription_debts', (ctx) => this.executeSubscriptionDebtNotification(ctx));
   }
 
   executeSubscriptionDebtNotification = async (ctx = null) => {
+    console.log('TgBot.executeSubscriptionDebtNotification');
+
     await moyKlassAPI.setToken();
     const invoicesRes = await moyKlassAPI.get('/invoices', {
       params: {
@@ -57,8 +59,6 @@ class TgBot {
     await moyKlassAPI.revokeToken();
 
     const users = [...new Set(usersRes.users.map((user) => user.name))];
-
-    console.log('TgBot.executeSubscriptionDebtNotification', users.length);
 
     if (ctx) {
       ctx.reply(users.join(','));
