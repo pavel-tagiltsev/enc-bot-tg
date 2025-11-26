@@ -47,13 +47,13 @@ class TgBot {
       }
     });
 
-    const invoicesWithDebts = invoicesRes.invoices.filter((invoice) => {
+    const overduePaymentInvoices = invoicesRes.invoices.filter((invoice) => {
       return invoice.price !== invoice.payed && new Date(invoice.payUntil) < new Date();
     });
 
     const usersRes = await moyKlassAPI.get('/users', {
       params: {
-        userIds: [...new Set(invoicesWithDebts.map((invoice) => invoice.userId))],
+        userIds: [...new Set(overduePaymentInvoices.map((invoice) => invoice.userId))],
       }
     });
     await moyKlassAPI.revokeToken();
