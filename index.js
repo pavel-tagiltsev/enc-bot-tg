@@ -24,7 +24,7 @@ class TgBot {
   initNotifications = () => {
     console.log('TgBot.initNotifications');
     CronJob.from({
-      cronTime: '* * * * *',
+      cronTime: '0 9 * * 1-5',
       onTick: this.executeSubscriptionDebtNotification,
       start: true,
       timeZone: 'Europe/Moscow'
