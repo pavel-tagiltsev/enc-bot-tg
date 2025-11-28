@@ -42,7 +42,7 @@ class TgBot {
     await moyKlassAPI.setToken();
     const invoicesRes = await moyKlassAPI.get('/invoices', {
       params: {
-        createdAt: ['2025-09-01', '2025-11-26'],
+        createdAt: ['2025-09-01', Time.formatYMD(new Date())],
         includeUserSubscriptions: true
       }
     });
