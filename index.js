@@ -39,7 +39,7 @@ class TgBot {
   }
 
   executeSubscriptionDebtNotification = async (ctx = null) => {
-    console.log('TgBot.executeSubscriptionDebtNotification');
+    console.log('TgBot.executeSubscriptionDebtNotification:start');
 
     await moyKlassAPI.setToken();
     const invoicesRes = await moyKlassAPI.get('/invoices', {
@@ -89,10 +89,12 @@ class TgBot {
 
     if (ctx) {
       ctx.replyWithHTML(template);
+      console.log('TgBot.executeSubscriptionDebtNotification:end');
       return;
     }
 
     this.bot.telegram.sendMessage(process.env.DEVELOPER_CHAT_ID, template, { parse_mode: 'HTML' });
+    console.log('TgBot.executeSubscriptionDebtNotification:end');
   }
 }
 
