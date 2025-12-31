@@ -39,6 +39,7 @@ class TgBot {
   initCommands = () => {
     console.log('TgBot.initCommands');
     this.bot.command('subscription_debts', (ctx) => this.executeSubscriptionDebtNotification(ctx));
+    this.bot.command('unmarked_lessons', (ctx) => this.executeUnmarkedLessonsNotification(ctx));
   }
 
   executeSubscriptionDebtNotification = async (ctx = null) => {
