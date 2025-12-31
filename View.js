@@ -5,6 +5,10 @@ export default class View {
     NEW_LINE: '\n'
   }
 
+  static #decorElements = {
+    LINE: '--------------------',
+  }
+
   static #htmlTemplate(strings, ...values) {
     const rawText = strings.reduce((acc, str, i) => acc + str + (values[i] ?? ""), "");
     const withoutIndent = rawText.replace(/^[ \t]+/gm, "");
@@ -34,4 +38,69 @@ export default class View {
       }).join(this.#HTMLEntities.NEW_LINE)}
     `;
   }
+
+  static renderUnmarkedLessonsNotificationTemplate(data) {
+    const { teachers, stats } = data;
+    const teachersByNameDesc = teachers.sort((a, b) => a.name - b.name);
+
+    return this.#htmlTemplate`
+      <b>Отчет по неотмеченным урокам</b>
+      ${this.#HTMLEntities.NEW_LINE}
+      <b>Всего учителей: ${stats.totalTeachers}</b>
+      ${this.#HTMLEntities.NEW_LINE}
+      <b>Всего занятий: ${stats.totalLessons}</b>
+      ${this.#HTMLEntities.NEW_LINE}
+      ${this.#decorElements.LINE}
+      ${teachersByNameDesc.map((teacher, index) => {
+        const { lessons, name } = teacher;
+        const isLastTeacher = stats.totalTeachers === index + 1;
+
+        const lessonsList = lessons.map((lesson, i) => {
+          const { date, beginTime, classId, className, userId, userName } = lesson;
+          const diff = Math.abs(Time.fullDaysDiff(date));
+          const link = userId
+            ? `https://app.moyklass.com/user/${userId}/lessons`
+            : `https://app.moyklass.com/class/${classId}/lessons`;
+          const limitation = diff
+            ? `${diff} ${this.pluralize('days', diff)}`
+            : 'сегодня';
+
+          return `
+            ${i + 1}. Просрочка: ${limitation}
+            ${userName ? 'Ученик' : 'Группа'}: <a href="${link}">${userName ? userName : className}</a>
+            Время: ${new Date(date).toLocaleDateString('ru-RU')}, ${beginTime}
+            ${this.#HTMLEntities.NEW_LINE}
+          `;
+        })
+
+        return `
+          ${name}:
+          ${this.#HTMLEntities.NEW_LINE}
+          ${lessonsList.join(this.#HTMLEntities.NEW_LINE)}
+          ${isLastTeacher ? '' : this.#decorElements.LINE}
+        `;
+      }).join(this.#HTMLEntities.NEW_LINE)}
+    `;
+  }
+
+  static pluralize = (word, num) => {
+    const forms = {
+      days: ['день', 'дня', 'дней'],
+    };
+
+    if (!forms[word]) {
+      return word;
+    }
+
+    const pr = new Intl.PluralRules('ru-RU');
+    const pluralForm = pr.select(Math.abs(num));
+
+    const formMap = {
+      one: 0,
+      few: 1,
+      many: 2
+    };
+
+    return forms[word][formMap[pluralForm]];
+  };
 }
