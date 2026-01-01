@@ -1,10 +1,9 @@
 import dotenv from "dotenv";
 import { Telegraf } from 'telegraf';
 import { CronJob } from 'cron';
-import moyKlassAPI from './Helpers/MoyKlassAPI.js';
 import View from './Helpers/View.js';
-import Time from './Helpers/Time.js';
 import UnmarkedLessonsNotification from './UseCases/UnmarkedLessonsNotification.js';
+import SubscriptionDebtNotification from './UseCases/SubscriptionDebtNotification.js';
 
 dotenv.config();
 const ADMIN_IDS = [Number(process.env.DEVELOPER_CHAT_ID), Number(process.env.ADMIN_CHAT_ID)];
@@ -66,63 +65,15 @@ export default class CompanyTgBot {
 
   executeSubscriptionDebtNotification = async (ctx = null) => {
     console.log('CompanyTgBot.executeSubscriptionDebtNotification:start');
-
-    await moyKlassAPI.setToken();
-    const invoicesRes = await moyKlassAPI.get('/invoices', {
-      params: {
-        createdAt: ['2025-09-01', Time.formatYMD(new Date())],
-        includeUserSubscriptions: true
-      }
-    });
-
-    const overduePaymentInvoices = invoicesRes.invoices.filter((invoice) => {
-      const isDebt = invoice.price !== invoice.payed;
-      const isOverdue = new Date(invoice.payUntil) < new Date(Time.formatYMD(new Date()));
-
-      return isDebt && isOverdue;
-    });
-
-    const overduePaymentUsersIds = overduePaymentInvoices.map((invoice) => invoice.userId);
-    const uniqueOverduePaymentUsersIds = [...new Set(overduePaymentUsersIds)];
-
-    const usersRes = await moyKlassAPI.get('/users', {
-      params: {
-        userIds: uniqueOverduePaymentUsersIds,
-      }
-    });
-    await moyKlassAPI.revokeToken();
-
-    const templateData = usersRes.users.reduce((acc, user) => {
-      const userInvoices = overduePaymentInvoices.filter(invoice => invoice.userId === user.id);
-      const userTotalDebt = userInvoices.reduce((sum, invoice) => sum + (invoice.price - invoice.payed), 0);
-      const userPayUntilDates = userInvoices.map(invoice => new Date(invoice.payUntil));
-      const userEarliestPayUntilDate = Time.formatYMD(new Date(Math.min(...userPayUntilDates)));
-
-      acc.users.push({
-        id: user.id,
-        name: user.name,
-        totalDebt: userTotalDebt,
-        earliestPayUntil: userEarliestPayUntilDate
+    const callback = (templateData) => {
+      this.sendHTMLMessage({
+        template: View.renderSubscriptionDebtNotificationTemplate(templateData),
+        consoleMsg: 'CompanyTgBot.executeSubscriptionDebtNotification:end',
+        ctx
       });
-
-      acc.stats.totalUsers += 1;
-      acc.stats.totalDebt += userTotalDebt;
-
-      return acc;
-    }, { users: [], stats: { totalUsers: 0, totalDebt: 0 } });
-
-    const template = View.renderSubscriptionDebtNotificationTemplate(templateData);
-
-    if (ctx) {
-      ctx.replyWithHTML(template);
-      console.log('CompanyTgBot.executeSubscriptionDebtNotification:end');
-      return;
     }
 
-    for (const adminId of ADMIN_IDS) {
-      this.bot.telegram.sendMessage(adminId, template, { parse_mode: 'HTML' });
-    }
-    console.log('CompanyTgBot.executeSubscriptionDebtNotification:end');
+    await SubscriptionDebtNotification.execute(callback);
   }
   executeUnmarkedLessonsNotification = async (ctx = null) => {
     console.log('CompanyTgBot.executeUnmarkedLessonsNotification:start');
