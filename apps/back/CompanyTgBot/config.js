@@ -22,7 +22,7 @@ export const actionsConfig = {
   subscriptionDebt: {
     service: SubscriptionDebtNotification,
     render: View.renderSubscriptionDebtNotificationTemplate,
-    cronTime: '* * * * *',
+    cronTime: '0 9 * * 1-5',
     adminOnly: true,
     command: 'subscription_debts',
     description: 'Показать все задолженности по ученикам',

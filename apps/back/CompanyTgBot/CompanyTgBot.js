@@ -28,7 +28,7 @@ export default class CompanyTgBot {
 
       CronJob.from({
         cronTime: cfg.cronTime,
-        onTick: async () => this.sendNotification(cfg, null),
+        onTick: () => this.sendNotification(cfg, null),
         start: true,
         timeZone: 'Europe/Moscow'
       });
@@ -46,10 +46,17 @@ export default class CompanyTgBot {
       return next();
     }
 
+    const userCommands = [];
+
     Object.values(actionsConfig).forEach((cfg) => {
       if (!cfg.command) {
         return;
       }
+
+      userCommands.push({
+        command: cfg.command,
+        description: cfg.description
+      });
 
       const middlewares = [];
       if (cfg.adminOnly) {
@@ -59,13 +66,6 @@ export default class CompanyTgBot {
       middlewares.push((ctx) => this.sendNotification(cfg, ctx));
       this.bot.command(cfg.command, ...middlewares);
     });
-
-    const userCommands = Object.values(actionsConfig)
-      .filter((cfg) => cfg.command)
-      .map((cfg) => ({
-        command: cfg.command,
-        description: cfg.description
-      }));
 
     await this.bot.telegram.setMyCommands(userCommands, { scope: { type: 'all_private_chats' } });
   }
@@ -78,10 +78,12 @@ export default class CompanyTgBot {
 
       if (ctx) {
         ctx.replyWithHTML(html);
-      } else {
-        for (const adminId of ADMIN_IDS) {
-          this.bot.telegram.sendMessage(adminId, html, { parse_mode: 'HTML' });
-        }
+        console.log(`CompanyTgBot.${cfg.command}:end`);
+        return;
+      }
+
+      for (const adminId of ADMIN_IDS) {
+        this.bot.telegram.sendMessage(adminId, html, { parse_mode: 'HTML' });
       }
 
       console.log(`CompanyTgBot.${cfg.command}:end`);
