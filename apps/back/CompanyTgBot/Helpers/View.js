@@ -9,12 +9,12 @@ export default class View {
     LINE: '--------------------',
   }
 
-  static #htmlTemplate(strings, ...values) {
+  static htmlTemplate(strings, ...values) {
     const rawText = strings.reduce((acc, str, i) => acc + str + (values[i] ?? ""), "");
     const withoutIndent = rawText.replace(/^[ \t]+/gm, "");
-    const multipleNewlinesPattern = `${this.#HTMLEntities.NEW_LINE}{2,}`;
+    const multipleNewlinesPattern = `${View.#HTMLEntities.NEW_LINE}{2,}`;
     const multipleNewlinesRegex = new RegExp(multipleNewlinesPattern, "g");
-    return withoutIndent.replace(multipleNewlinesRegex, this.#HTMLEntities.NEW_LINE).trim();
+    return withoutIndent.replace(multipleNewlinesRegex, View.#HTMLEntities.NEW_LINE).trim();
   }
 
   static renderSubscriptionDebtNotificationTemplate(data) {
@@ -22,20 +22,20 @@ export default class View {
       return new Date(a.earliestPayUntil) - new Date(b.earliestPayUntil);
     });
 
-    return this.#htmlTemplate`
+    return View.htmlTemplate`
       <b>Отчет по задолженностям</b>
-      ${this.#HTMLEntities.NEW_LINE}
+      ${View.#HTMLEntities.NEW_LINE}
       <b>Всего учеников: ${data.stats.totalUsers}</b>
-      ${this.#HTMLEntities.NEW_LINE}
+      ${View.#HTMLEntities.NEW_LINE}
       <b>Общая сумма: ${data.stats.totalDebt}</b>
-      ${this.#HTMLEntities.NEW_LINE}
+      ${View.#HTMLEntities.NEW_LINE}
       ${usersByEarliestPayUntilDesc.map((user) => {
         const fullDaysDiffConst = Time.fullDaysDiff(user.earliestPayUntil);
         const emoji = Math.abs(fullDaysDiffConst) > 14 ? '🔥' : Math.abs(fullDaysDiffConst) > 7  ? '⚠️' : '💰';
         const link = `https://app.moyklass.com/user/${user.id}/payments?view=invoices`;
 
         return `${emoji}<a href="${link}">${user.name}</a> с ${user.earliestPayUntil} на сумму ${user.totalDebt}`;
-      }).join(this.#HTMLEntities.NEW_LINE)}
+      }).join(View.#HTMLEntities.NEW_LINE)}
     `;
   }
 
@@ -43,14 +43,14 @@ export default class View {
     const { teachers, stats } = data;
     const teachersByNameDesc = teachers.sort((a, b) => a.name - b.name);
 
-    return this.#htmlTemplate`
+    return View.htmlTemplate`
       <b>Отчет по неотмеченным урокам</b>
-      ${this.#HTMLEntities.NEW_LINE}
+      ${View.#HTMLEntities.NEW_LINE}
       <b>Всего учителей: ${stats.totalTeachers}</b>
-      ${this.#HTMLEntities.NEW_LINE}
+      ${View.#HTMLEntities.NEW_LINE}
       <b>Всего занятий: ${stats.totalLessons}</b>
-      ${this.#HTMLEntities.NEW_LINE}
-      ${this.#decorElements.LINE}
+      ${View.#HTMLEntities.NEW_LINE}
+      ${View.#decorElements.LINE}
       ${teachersByNameDesc.map((teacher, index) => {
         const { lessons, name } = teacher;
         const isLastTeacher = stats.totalTeachers === index + 1;
@@ -62,24 +62,24 @@ export default class View {
             ? `https://app.moyklass.com/user/${userId}/lessons`
             : `https://app.moyklass.com/class/${classId}/lessons`;
           const limitation = diff
-            ? `${diff} ${this.pluralize('days', diff)}`
+            ? `${diff} ${View.pluralize('days', diff)}`
             : 'сегодня';
 
           return `
             ${i + 1}. Просрочка: ${limitation}
             ${userName ? 'Ученик' : 'Группа'}: <a href="${link}">${userName ? userName : className}</a>
             Время: ${new Date(date).toLocaleDateString('ru-RU')}, ${beginTime}
-            ${this.#HTMLEntities.NEW_LINE}
+            ${View.#HTMLEntities.NEW_LINE}
           `;
         })
 
         return `
           ${name}:
-          ${this.#HTMLEntities.NEW_LINE}
-          ${lessonsList.join(this.#HTMLEntities.NEW_LINE)}
-          ${isLastTeacher ? '' : this.#decorElements.LINE}
+          ${View.#HTMLEntities.NEW_LINE}
+          ${lessonsList.join(View.#HTMLEntities.NEW_LINE)}
+          ${isLastTeacher ? '' : View.#decorElements.LINE}
         `;
-      }).join(this.#HTMLEntities.NEW_LINE)}
+      }).join(View.#HTMLEntities.NEW_LINE)}
     `;
   }
 

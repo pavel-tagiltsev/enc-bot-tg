@@ -8,6 +8,17 @@ import SubscriptionDebtNotification from './UseCases/SubscriptionDebtNotificatio
 dotenv.config();
 const ADMIN_IDS = [Number(process.env.DEVELOPER_CHAT_ID), Number(process.env.ADMIN_CHAT_ID)];
 
+const notifications = {
+  subscriptionDebt: {
+    service: SubscriptionDebtNotification,
+    render: View.renderSubscriptionDebtNotificationTemplate,
+  },
+  unmarkedLessons: {
+    service: UnmarkedLessonsNotification,
+    render: View.renderUnmarkedLessonsNotificationTemplate,
+  },
+};
+
 export default class CompanyTgBot {
   constructor(token) {
     this.bot = new Telegraf(token);
@@ -25,8 +36,8 @@ export default class CompanyTgBot {
     CronJob.from({
       cronTime: '0 9 * * 1-5',
       onTick: async () => {
-        await this.executeSubscriptionDebtNotification();
-        await this.executeUnmarkedLessonsNotification();
+        await this.executeNotification('subscriptionDebt');
+        await this.executeNotification('unmarkedLessons');
       },
       start: true,
       timeZone: 'Europe/Moscow'
@@ -59,34 +70,23 @@ export default class CompanyTgBot {
     this.bot.start((ctx) => ctx.reply('Запуск бота'));
     this.bot.help((ctx) => ctx.reply('Помощь'));
     this.bot.command('unmarked_lessons', (ctx) => ctx.reply('Показать мои неотмеченные уроки'));
-    this.bot.command('subscription_debts', adminOnly, (ctx) => this.executeSubscriptionDebtNotification(ctx));
-    this.bot.command('all_unmarked_lessons', adminOnly, (ctx) => this.executeUnmarkedLessonsNotification(ctx));
+    this.bot.command('subscription_debts', adminOnly, (ctx) => this.executeNotification('subscriptionDebt', ctx));
+    this.bot.command('all_unmarked_lessons', adminOnly, (ctx) => this.executeNotification('unmarkedLessons', ctx));
   }
 
-  executeSubscriptionDebtNotification = async (ctx = null) => {
-    console.log('CompanyTgBot.executeSubscriptionDebtNotification:start');
-    const callback = (templateData) => {
+  executeNotification = async (key, ctx = null) => {
+    const { service, render } = notifications[key];
+
+    console.log(`CompanyTgBot.${key}:start`);
+
+    await service.execute((templateData) => {
       this.sendHTMLMessage({
-        template: View.renderSubscriptionDebtNotificationTemplate(templateData),
-        consoleMsg: 'CompanyTgBot.executeSubscriptionDebtNotification:end',
-        ctx
+        template: render(templateData),
+        consoleMsg: `CompanyTgBot.${key}:end`,
+        ctx,
       });
-    }
-
-    await SubscriptionDebtNotification.execute(callback);
-  }
-  executeUnmarkedLessonsNotification = async (ctx = null) => {
-    console.log('CompanyTgBot.executeUnmarkedLessonsNotification:start');
-    const callback = (templateData) => {
-      this.sendHTMLMessage({
-        template: View.renderUnmarkedLessonsNotificationTemplate(templateData),
-        consoleMsg: 'CompanyTgBot.executeUnmarkedLessonsNotification:end',
-        ctx
-      });
-    }
-
-    await UnmarkedLessonsNotification.execute(callback);
-  }
+    });
+  };
 
   sendHTMLMessage = ({template, consoleMsg, ctx = null}) => {
     if (ctx) {
