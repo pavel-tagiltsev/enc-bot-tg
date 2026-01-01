@@ -19,4 +19,4 @@ jobs:
             cd /opt/projects/enc-bot-tg
             git pull origin production
             npm install --omit=dev
-            pm2 restart enc-bot-tg
+            /home/dev/.npm-global/bin/pm2 restart enc-bot-tg
