@@ -2,7 +2,9 @@
   "apps": [
   {
     "name": "enc-bot-tg",
-    "script": "server.js",
+    "script": "npm",
+    "args": "run start:prod",
+    "cwd": "/opt/projects/enc-bot-tg",
     "instances": 1,
     "autorestart": true,
     "watch": false,
