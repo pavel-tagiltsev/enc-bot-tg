@@ -6,20 +6,17 @@ import View from './View.js';
 import Time from './Time.js';
 
 dotenv.config();
+const ADMIN_IDS = [Number(process.env.DEVELOPER_CHAT_ID), Number(process.env.ADMIN_CHAT_ID)];
 
 class TgBot {
   constructor(token) {
     this.bot = new Telegraf(token);
-
-    this.bot.start((ctx) => ctx.reply('Привет!'));
-    this.bot.help((ctx) => ctx.reply('Чем могу помочь? Напишите что-нибудь!'));
-    this.bot.hears('Привет', (ctx) => ctx.reply('Привет! Как дела?'));
   }
 
-  launch() {
+  async launch() {
     console.log('TgBot.launch');
     this.bot.launch();
-    this.initCommands();
+    await this.initCommands();
     this.initNotifications();
   }
 
@@ -36,10 +33,34 @@ class TgBot {
     });
   }
 
-  initCommands = () => {
+  initCommands = async () => {
     console.log('TgBot.initCommands');
-    this.bot.command('subscription_debts', (ctx) => this.executeSubscriptionDebtNotification(ctx));
-    this.bot.command('unmarked_lessons', (ctx) => this.executeUnmarkedLessonsNotification(ctx));
+    const userCommands = [
+      { command: 'start', description: 'Запуск бота' },
+      { command: 'help', description: 'Помощь' },
+      { command: 'unmarked_lessons', description: 'Показать мои неотмеченные уроки' },
+      { command: 'all_unmarked_lessons', description: 'Показать неотмеченные уроки по учителям' },
+      { command: 'subscription_debts', description: 'Показать все задолженности по ученикам' },
+    ];
+
+    await this.bot.telegram.setMyCommands(userCommands, {
+      scope: { type: 'all_private_chats' }
+    });
+
+    const adminOnly = async (ctx, next) => {
+      if (!ctx.from || !ADMIN_IDS.includes(ctx.from.id)) {
+        await ctx.reply('⛔ Нет доступа');
+        return;
+      }
+
+      return next();
+    }
+
+    this.bot.start((ctx) => ctx.reply('Запуск бота'));
+    this.bot.help((ctx) => ctx.reply('Помощь'));
+    this.bot.command('unmarked_lessons', (ctx) => ctx.reply('Показать мои неотмеченные уроки'));
+    this.bot.command('subscription_debts', adminOnly, (ctx) => this.executeSubscriptionDebtNotification(ctx));
+    this.bot.command('all_unmarked_lessons', adminOnly, (ctx) => this.executeUnmarkedLessonsNotification(ctx));
   }
 
   executeSubscriptionDebtNotification = async (ctx = null) => {
@@ -97,7 +118,9 @@ class TgBot {
       return;
     }
 
-    this.bot.telegram.sendMessage(process.env.DEVELOPER_CHAT_ID, template, { parse_mode: 'HTML' });
+    for (const adminId of ADMIN_IDS) {
+      this.bot.telegram.sendMessage(adminId, template, { parse_mode: 'HTML' });
+    }
     console.log('TgBot.executeSubscriptionDebtNotification:end');
   }
   executeUnmarkedLessonsNotification = async (ctx = null) => {
@@ -120,7 +143,9 @@ class TgBot {
       return;
     }
 
-    this.bot.telegram.sendMessage(process.env.DEVELOPER_CHAT_ID, template, { parse_mode: 'HTML' });
+    for (const adminId of ADMIN_IDS) {
+      this.bot.telegram.sendMessage(adminId, template, { parse_mode: 'HTML' });
+    }
     console.log(consoleMsg);
   }
 
@@ -210,4 +235,4 @@ class TgBot {
 }
 
 const botInstance = new TgBot(process.env.TELEGRAM_TOKEN);
-botInstance.launch();
+await botInstance.launch();
