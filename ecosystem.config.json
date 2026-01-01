@@ -1,8 +1,8 @@
 {
   "apps": [
   {
-    "name": "tg-bot",
-    "script": "src/index.js",
+    "name": "enc-bot-tg",
+    "script": "server.js",
     "instances": 1,
     "autorestart": true,
     "watch": false,
