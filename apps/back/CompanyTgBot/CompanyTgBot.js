@@ -1,27 +1,27 @@
 import dotenv from "dotenv";
 import { Telegraf } from 'telegraf';
 import { CronJob } from 'cron';
-import moyKlassAPI from './MoyKlassAPI.js';
-import View from './View.js';
-import Time from './Time.js';
+import moyKlassAPI from './Helpers/MoyKlassAPI.js';
+import View from './Helpers/View.js';
+import Time from './Helpers/Time.js';
 
 dotenv.config();
 const ADMIN_IDS = [Number(process.env.DEVELOPER_CHAT_ID), Number(process.env.ADMIN_CHAT_ID)];
 
-class TgBot {
+export default class CompanyTgBot {
   constructor(token) {
     this.bot = new Telegraf(token);
   }
 
   async launch() {
-    console.log('TgBot.launch');
+    console.log('CompanyTgBot.launch');
     this.bot.launch();
     await this.initCommands();
     this.initNotifications();
   }
 
   initNotifications = () => {
-    console.log('TgBot.initNotifications');
+    console.log('CompanyTgBot.initNotifications');
     CronJob.from({
       cronTime: '0 9 * * 1-5',
       onTick: async () => {
@@ -34,7 +34,7 @@ class TgBot {
   }
 
   initCommands = async () => {
-    console.log('TgBot.initCommands');
+    console.log('CompanyTgBot.initCommands');
     const userCommands = [
       { command: 'start', description: 'Запуск бота' },
       { command: 'help', description: 'Помощь' },
@@ -64,7 +64,7 @@ class TgBot {
   }
 
   executeSubscriptionDebtNotification = async (ctx = null) => {
-    console.log('TgBot.executeSubscriptionDebtNotification:start');
+    console.log('CompanyTgBot.executeSubscriptionDebtNotification:start');
 
     await moyKlassAPI.setToken();
     const invoicesRes = await moyKlassAPI.get('/invoices', {
@@ -114,24 +114,24 @@ class TgBot {
 
     if (ctx) {
       ctx.replyWithHTML(template);
-      console.log('TgBot.executeSubscriptionDebtNotification:end');
+      console.log('CompanyTgBot.executeSubscriptionDebtNotification:end');
       return;
     }
 
     for (const adminId of ADMIN_IDS) {
       this.bot.telegram.sendMessage(adminId, template, { parse_mode: 'HTML' });
     }
-    console.log('TgBot.executeSubscriptionDebtNotification:end');
+    console.log('CompanyTgBot.executeSubscriptionDebtNotification:end');
   }
   executeUnmarkedLessonsNotification = async (ctx = null) => {
-    console.log('TgBot.executeUnmarkedLessonsNotification:start');
+    console.log('CompanyTgBot.executeUnmarkedLessonsNotification:start');
 
     const data = await this.getUnmarkedLessonsNotificationData();
     const templateData = this.buildUnmarkedLessonsNotificationTemplateData(data);
 
     this.sendHTMLMessage({
       template: View.renderUnmarkedLessonsNotificationTemplate(templateData),
-      consoleMsg: 'TgBot.executeUnmarkedLessonsNotification:end',
+      consoleMsg: 'CompanyTgBot.executeUnmarkedLessonsNotification:end',
       ctx
     });
   }
@@ -233,6 +233,3 @@ class TgBot {
     }, { teachers: [], stats: { totalTeachers: 0, totalLessons: 0 } });
   }
 }
-
-const botInstance = new TgBot(process.env.TELEGRAM_TOKEN);
-await botInstance.launch();
