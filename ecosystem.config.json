@@ -1,18 +1,18 @@
 {
   "apps": [
-  {
-    "name": "enc-bot-tg",
-    "script": "npm",
-    "args": "run start:prod",
-    "cwd": "/opt/projects/enc-bot-tg",
-    "instances": 1,
-    "autorestart": true,
-    "watch": false,
-    "max_restarts": 10,
-    "env": {
-      "NODE_ENV": "production"
-    },
-    "log_date_format": "YYYY-MM-DD HH:mm:ss"
-  }
-]
+    {
+      "name": "enc-bot-tg",
+      "script": "server.js",
+      "cwd": "/opt/projects/enc-bot-tg",
+      "exec_mode": "fork",
+      "interpreter": "node",
+      "instances": 1,
+      "autorestart": true,
+      "max_restarts": 10,
+      "env": {
+        "NODE_ENV": "production"
+      },
+      "log_date_format": "YYYY-MM-DD HH:mm:ss"
+    }
+  ]
 }
