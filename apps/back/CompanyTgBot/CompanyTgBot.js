@@ -1,10 +1,11 @@
-import dotenv from "dotenv";
 import { Telegraf } from 'telegraf';
 import { CronJob } from 'cron';
 import { actionsConfig } from './config.js';
 
-dotenv.config();
-const ADMIN_IDS = [Number(process.env.DEVELOPER_CHAT_ID), Number(process.env.ADMIN_CHAT_ID)];
+const ADMIN_IDS = [
+  Number(process.env.DEVELOPER_CHAT_ID),
+  Number(process.env.ADMIN_CHAT_ID)
+];
 
 export default class CompanyTgBot {
   constructor(token) {
@@ -44,7 +45,7 @@ export default class CompanyTgBot {
         return;
       }
       return next();
-    }
+    };
 
     const userCommands = [];
 
@@ -88,5 +89,10 @@ export default class CompanyTgBot {
 
       console.log(`CompanyTgBot.${cfg.command}:end`);
     });
+  }
+
+  async stop(signal) {
+    console.log(`CompanyTgBot.stop(${signal})`);
+    await this.bot.stop(signal);
   }
 }
