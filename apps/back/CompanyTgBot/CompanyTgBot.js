@@ -73,6 +73,7 @@ export default class CompanyTgBot {
 
   sendNotification = async (cfg, ctx = null) => {
     console.log(`CompanyTgBot.${cfg.command}:start`);
+    console.info(ctx.from.id);
 
     await cfg.service.execute((templateData) => {
       const html = cfg.render(templateData);
