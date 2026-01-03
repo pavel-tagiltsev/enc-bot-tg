@@ -1,6 +1,13 @@
+import dotenv from 'dotenv';
 import { Telegraf } from 'telegraf';
 import { CronJob } from 'cron';
 import { actionsConfig } from './config.js';
+
+const isProduction = process.env.NODE_ENV === 'production';
+
+dotenv.config({
+  path: isProduction ? '.env.prod' : '.env.local'
+});
 
 const ADMIN_IDS = [
   Number(process.env.DEVELOPER_CHAT_ID),
@@ -41,7 +48,8 @@ export default class CompanyTgBot {
 
     const adminOnly = async (ctx, next) => {
       console.info(ctx.from.id);
-      if (!ctx.from || !ADMIN_IDS.includes(ctx.from.id)) {
+      console.info(ADMIN_IDS);
+      if (!ctx.from || !ADMIN_IDS.includes(Number(ctx.from.id))) {
         await ctx.reply('⛔ Нет доступа');
         return;
       }
