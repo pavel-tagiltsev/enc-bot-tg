@@ -3,3 +3,4 @@ node_modules
 .env.prod
 package-lock.json
 .DS_Store
+.idea
