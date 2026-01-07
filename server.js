@@ -4,16 +4,17 @@ import CompanyTgBot from './apps/back/CompanyTgBot/CompanyTgBot.js';
 const isProduction = process.env.NODE_ENV === 'production';
 
 dotenv.config({
-  path: isProduction ? '.env.prod' : '.env.local'
+  path: isProduction ? '.env.prod' : '.env.local',
 });
 
 const companyBot = new CompanyTgBot(process.env.TELEGRAM_TOKEN);
 
-companyBot.launch()
+companyBot
+  .launch()
   .then(() => {
     console.log(`✅ Bot started (${isProduction ? 'production' : 'local'})`);
   })
-  .catch(err => {
+  .catch((err) => {
     console.error('❌ Bot failed to start', err);
     process.exit(1);
   });

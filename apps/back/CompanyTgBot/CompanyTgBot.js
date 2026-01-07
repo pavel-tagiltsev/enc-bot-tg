@@ -6,13 +6,10 @@ import { actionsConfig } from './config.js';
 const isProduction = process.env.NODE_ENV === 'production';
 
 dotenv.config({
-  path: isProduction ? '.env.prod' : '.env.local'
+  path: isProduction ? '.env.prod' : '.env.local',
 });
 
-const ADMIN_IDS = [
-  Number(process.env.DEVELOPER_CHAT_ID),
-  Number(process.env.ADMIN_CHAT_ID)
-];
+const ADMIN_IDS = [Number(process.env.DEVELOPER_CHAT_ID), Number(process.env.ADMIN_CHAT_ID)];
 
 export default class CompanyTgBot {
   constructor(token) {
@@ -38,10 +35,10 @@ export default class CompanyTgBot {
         cronTime: cfg.cronTime,
         onTick: () => this.sendNotification(cfg, null),
         start: true,
-        timeZone: 'Europe/Moscow'
+        timeZone: 'Europe/Moscow',
       });
     });
-  }
+  };
 
   initCommands = async () => {
     console.log('CompanyTgBot.initCommands');
@@ -65,7 +62,7 @@ export default class CompanyTgBot {
 
       userCommands.push({
         command: cfg.command,
-        description: cfg.description
+        description: cfg.description,
       });
 
       const middlewares = [];
@@ -78,7 +75,7 @@ export default class CompanyTgBot {
     });
 
     await this.bot.telegram.setMyCommands(userCommands, { scope: { type: 'all_private_chats' } });
-  }
+  };
 
   sendNotification = async (cfg, ctx = null) => {
     console.log(`CompanyTgBot.${cfg.command}:start`);
@@ -98,7 +95,7 @@ export default class CompanyTgBot {
 
       console.log(`CompanyTgBot.${cfg.command}:end`);
     });
-  }
+  };
 
   async stop(signal) {
     console.log(`CompanyTgBot.stop(${signal})`);

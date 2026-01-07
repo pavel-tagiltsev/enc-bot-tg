@@ -2,18 +2,18 @@ import Time from './Time.js';
 
 export default class View {
   static #HTMLEntities = {
-    NEW_LINE: '\n'
-  }
+    NEW_LINE: '\n',
+  };
 
   static #decorElements = {
     LINE: '--------------------',
-  }
+  };
 
   static htmlTemplate(strings, ...values) {
-    const rawText = strings.reduce((acc, str, i) => acc + str + (values[i] ?? ""), "");
-    const withoutIndent = rawText.replace(/^[ \t]+/gm, "");
+    const rawText = strings.reduce((acc, str, i) => acc + str + (values[i] ?? ''), '');
+    const withoutIndent = rawText.replace(/^[ \t]+/gm, '');
     const multipleNewlinesPattern = `${View.#HTMLEntities.NEW_LINE}{2,}`;
-    const multipleNewlinesRegex = new RegExp(multipleNewlinesPattern, "g");
+    const multipleNewlinesRegex = new RegExp(multipleNewlinesPattern, 'g');
     return withoutIndent.replace(multipleNewlinesRegex, View.#HTMLEntities.NEW_LINE).trim();
   }
 
@@ -29,13 +29,16 @@ export default class View {
       ${View.#HTMLEntities.NEW_LINE}
       <b>Общая сумма: ${data.stats.totalDebt}</b>
       ${View.#HTMLEntities.NEW_LINE}
-      ${usersByEarliestPayUntilDesc.map((user) => {
-        const fullDaysDiffConst = Time.fullDaysDiff(user.earliestPayUntil);
-        const emoji = Math.abs(fullDaysDiffConst) > 14 ? '🔥' : Math.abs(fullDaysDiffConst) > 7  ? '⚠️' : '💰';
-        const link = `https://app.moyklass.com/user/${user.id}/payments?view=invoices`;
+      ${usersByEarliestPayUntilDesc
+        .map((user) => {
+          const fullDaysDiffConst = Time.fullDaysDiff(user.earliestPayUntil);
+          const emoji =
+            Math.abs(fullDaysDiffConst) > 14 ? '🔥' : Math.abs(fullDaysDiffConst) > 7 ? '⚠️' : '💰';
+          const link = `https://app.moyklass.com/user/${user.id}/payments?view=invoices`;
 
-        return `${emoji}<a href="${link}">${user.name}</a> с ${user.earliestPayUntil} на сумму ${user.totalDebt}`;
-      }).join(View.#HTMLEntities.NEW_LINE)}
+          return `${emoji}<a href="${link}">${user.name}</a> с ${user.earliestPayUntil} на сумму ${user.totalDebt}`;
+        })
+        .join(View.#HTMLEntities.NEW_LINE)}
     `;
   }
 
@@ -51,35 +54,35 @@ export default class View {
       <b>Всего занятий: ${stats.totalLessons}</b>
       ${View.#HTMLEntities.NEW_LINE}
       ${View.#decorElements.LINE}
-      ${teachersByNameDesc.map((teacher, index) => {
-        const { lessons, name } = teacher;
-        const isLastTeacher = stats.totalTeachers === index + 1;
+      ${teachersByNameDesc
+        .map((teacher, index) => {
+          const { lessons, name } = teacher;
+          const isLastTeacher = stats.totalTeachers === index + 1;
 
-        const lessonsList = lessons.map((lesson, i) => {
-          const { date, beginTime, classId, className, userId, userName } = lesson;
-          const diff = Math.abs(Time.fullDaysDiff(date));
-          const link = userId
-            ? `https://app.moyklass.com/user/${userId}/lessons`
-            : `https://app.moyklass.com/class/${classId}/lessons`;
-          const limitation = diff
-            ? `${diff} ${View.pluralize('days', diff)}`
-            : 'сегодня';
+          const lessonsList = lessons.map((lesson, i) => {
+            const { date, beginTime, classId, className, userId, userName } = lesson;
+            const diff = Math.abs(Time.fullDaysDiff(date));
+            const link = userId
+              ? `https://app.moyklass.com/user/${userId}/lessons`
+              : `https://app.moyklass.com/class/${classId}/lessons`;
+            const limitation = diff ? `${diff} ${View.pluralize('days', diff)}` : 'сегодня';
 
-          return `
+            return `
             ${i + 1}. Просрочка: ${limitation}
             ${userName ? 'Ученик' : 'Группа'}: <a href="${link}">${userName ? userName : className}</a>
             Время: ${new Date(date).toLocaleDateString('ru-RU')}, ${beginTime}
             ${View.#HTMLEntities.NEW_LINE}
           `;
-        })
+          });
 
-        return `
+          return `
           ${name}:
           ${View.#HTMLEntities.NEW_LINE}
           ${lessonsList.join(View.#HTMLEntities.NEW_LINE)}
           ${isLastTeacher ? '' : View.#decorElements.LINE}
         `;
-      }).join(View.#HTMLEntities.NEW_LINE)}
+        })
+        .join(View.#HTMLEntities.NEW_LINE)}
     `;
   }
 
@@ -98,7 +101,7 @@ export default class View {
     const formMap = {
       one: 0,
       few: 1,
-      many: 2
+      many: 2,
     };
 
     return forms[word][formMap[pluralForm]];
