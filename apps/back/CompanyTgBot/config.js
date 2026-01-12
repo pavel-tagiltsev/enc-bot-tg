@@ -4,7 +4,7 @@ import UnmarkedLessonsNotification from './UseCases/UnmarkedLessonsNotification.
 
 export const actionsConfig = {
   start: {
-    service: { execute: (cb) => cb()},
+    service: { execute: (cb) => cb() },
     render: () => 'Запуск бота',
     cronTime: null,
     adminOnly: false,
@@ -12,7 +12,7 @@ export const actionsConfig = {
     description: 'Запуск бота',
   },
   help: {
-    service: { execute: (cb) => cb()},
+    service: { execute: (cb) => cb() },
     render: () => 'Помощь',
     cronTime: null,
     adminOnly: false,
@@ -30,7 +30,7 @@ export const actionsConfig = {
   AllUnmarkedLessons: {
     service: UnmarkedLessonsNotification,
     render: View.renderUnmarkedLessonsNotificationTemplate,
-    cronTime: '0 9 * * 1-5',
+    cronTime: '5 9 * * 1-5',
     adminOnly: true,
     command: 'all_unmarked_lessons',
     description: 'Показать неотмеченные уроки по учителям',
@@ -42,5 +42,5 @@ export const actionsConfig = {
     adminOnly: false,
     command: 'unmarked_lessons',
     description: 'Показать мои неотмеченные уроки',
-  }
+  },
 };
