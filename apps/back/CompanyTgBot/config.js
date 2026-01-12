@@ -30,7 +30,7 @@ export const actionsConfig = {
   AllUnmarkedLessons: {
     service: UnmarkedLessonsNotification,
     render: View.renderUnmarkedLessonsNotificationTemplate,
-    cronTime: '0 9 * * 1-5',
+    cronTime: '5 9 * * 1-5',
     adminOnly: true,
     command: 'all_unmarked_lessons',
     description: 'Показать неотмеченные уроки по учителям',
