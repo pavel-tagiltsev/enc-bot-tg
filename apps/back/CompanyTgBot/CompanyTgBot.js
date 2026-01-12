@@ -44,8 +44,6 @@ export default class CompanyTgBot {
     console.log('CompanyTgBot.initCommands');
 
     const adminOnly = async (ctx, next) => {
-      console.info(ctx.from.id);
-      console.info(ADMIN_IDS);
       if (!ctx.from || !ADMIN_IDS.includes(Number(ctx.from.id))) {
         await ctx.reply('⛔ Нет доступа');
         return;
@@ -79,6 +77,7 @@ export default class CompanyTgBot {
 
   sendNotification = async (cfg, ctx = null) => {
     console.log(`CompanyTgBot.${cfg.command}:start`);
+    console.info(ctx.from.id);
 
     await cfg.service.execute((templateData) => {
       const html = cfg.render(templateData);
