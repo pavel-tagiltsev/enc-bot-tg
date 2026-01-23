@@ -61,7 +61,7 @@ interface TemplateTeacher {
   lessons: TemplateTeacherLesson[];
 }
 
-interface TemplateData {
+export interface TemplateData { // Added export keyword
   teachers: TemplateTeacher[];
   stats: {
     totalTeachers: number;

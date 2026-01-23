@@ -32,7 +32,7 @@ interface TemplateUser {
   earliestPayUntil: string;
 }
 
-interface TemplateData {
+export interface TemplateData { // Added export keyword
   users: TemplateUser[];
   stats: {
     totalUsers: number;
