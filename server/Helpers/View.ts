@@ -1,5 +1,43 @@
 import Time from './Time.js';
 
+interface User {
+  earliestPayUntil: string;
+  id: number;
+  name: string;
+  totalDebt: number;
+}
+
+interface SubscriptionDebtData {
+  users: User[];
+  stats: {
+    totalUsers: number;
+    totalDebt: number;
+  };
+}
+
+interface Lesson {
+  date: string;
+  beginTime: string;
+  classId: number;
+  className: string;
+  userId?: number;
+  userName?: string;
+}
+
+interface Teacher {
+  lessons: Lesson[];
+  name: string;
+}
+
+interface UnmarkedLessonsData {
+  teachers: Teacher[];
+  stats: {
+    totalTeachers: number;
+    totalLessons: number;
+  };
+}
+
+
 export default class View {
   static #HTMLEntities = {
     NEW_LINE: '\n',
@@ -9,7 +47,7 @@ export default class View {
     LINE: '--------------------',
   };
 
-  static htmlTemplate(strings, ...values) {
+  static htmlTemplate(strings: TemplateStringsArray, ...values: any[]): string {
     const rawText = strings.reduce((acc, str, i) => acc + str + (values[i] ?? ''), '');
     const withoutIndent = rawText.replace(/^[ \t]+/gm, '');
     const multipleNewlinesPattern = `${View.#HTMLEntities.NEW_LINE}{2,}`;
@@ -17,9 +55,9 @@ export default class View {
     return withoutIndent.replace(multipleNewlinesRegex, View.#HTMLEntities.NEW_LINE).trim();
   }
 
-  static renderSubscriptionDebtNotificationTemplate(data) {
+  static renderSubscriptionDebtNotificationTemplate(data: SubscriptionDebtData): string {
     const usersByEarliestPayUntilDesc = data.users.sort((a, b) => {
-      return new Date(a.earliestPayUntil) - new Date(b.earliestPayUntil);
+      return new Date(a.earliestPayUntil).getTime() - new Date(b.earliestPayUntil).getTime();
     });
 
     return View.htmlTemplate`
@@ -42,9 +80,13 @@ export default class View {
     `;
   }
 
-  static renderUnmarkedLessonsNotificationTemplate(data) {
+  static renderUnmarkedLessonsNotificationTemplate(data: UnmarkedLessonsData): string {
     const { teachers, stats } = data;
-    const teachersByNameDesc = teachers.sort((a, b) => a.name - b.name);
+    const teachersByNameDesc = teachers.sort((a, b) => {
+      if (a.name < b.name) return -1;
+      if (a.name > b.name) return 1;
+      return 0;
+    });
 
     return View.htmlTemplate`
       <b>Отчет по неотмеченным урокам</b>
@@ -86,8 +128,8 @@ export default class View {
     `;
   }
 
-  static pluralize = (word, num) => {
-    const forms = {
+  static pluralize = (word: string, num: number): string => {
+    const forms: { [key: string]: string[] } = {
       days: ['день', 'дня', 'дней'],
     };
 
@@ -98,7 +140,7 @@ export default class View {
     const pr = new Intl.PluralRules('ru-RU');
     const pluralForm = pr.select(Math.abs(num));
 
-    const formMap = {
+    const formMap: { [key: string]: number } = {
       one: 0,
       few: 1,
       many: 2,
