@@ -1,7 +1,8 @@
 import dotenv from 'dotenv';
-import { Telegraf } from 'telegraf';
+import { Telegraf, Context } from 'telegraf';
+import { Update } from 'telegraf/types';
 import { CronJob } from 'cron';
-import { actionsConfig } from './config.js';
+import { actionsConfig, ActionConfig } from './config.js';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -9,24 +10,29 @@ dotenv.config({
   path: isProduction ? '.env.prod' : '.env.local',
 });
 
-const ADMIN_IDS = [Number(process.env.DEVELOPER_CHAT_ID), Number(process.env.ADMIN_CHAT_ID)];
+const ADMIN_IDS: number[] = [
+  Number(process.env.DEVELOPER_CHAT_ID),
+  Number(process.env.ADMIN_CHAT_ID),
+];
 
 export default class CompanyTgBot {
-  constructor(token) {
+  private bot: Telegraf<Context<Update>>;
+
+  constructor(token: string) {
     this.bot = new Telegraf(token);
   }
 
-  async launch() {
+  async launch(): Promise<void> {
     console.log('CompanyTgBot.launch');
     this.bot.launch();
     await this.initCommands();
     this.initNotifications();
   }
 
-  initNotifications = () => {
+  initNotifications = (): void => {
     console.log('CompanyTgBot.initNotifications');
 
-    Object.values(actionsConfig).forEach((cfg) => {
+    Object.values(actionsConfig).forEach((cfg: ActionConfig) => {
       if (!cfg.cronTime) {
         return;
       }
@@ -40,10 +46,10 @@ export default class CompanyTgBot {
     });
   };
 
-  initCommands = async () => {
+  initCommands = async (): Promise<void> => {
     console.log('CompanyTgBot.initCommands');
 
-    const adminOnly = async (ctx, next) => {
+    const adminOnly = async (ctx: Context, next: () => Promise<void>): Promise<void> => {
       if (!ctx.from || !ADMIN_IDS.includes(Number(ctx.from.id))) {
         await ctx.reply('⛔ Нет доступа');
         return;
@@ -51,9 +57,9 @@ export default class CompanyTgBot {
       return next();
     };
 
-    const userCommands = [];
+    const userCommands: { command: string; description: string }[] = [];
 
-    Object.values(actionsConfig).forEach((cfg) => {
+    Object.values(actionsConfig).forEach((cfg: ActionConfig) => {
       if (!cfg.command) {
         return;
       }
@@ -63,23 +69,25 @@ export default class CompanyTgBot {
         description: cfg.description,
       });
 
-      const middlewares = [];
+      const middlewares: any[] = [];
       if (cfg.adminOnly) {
         middlewares.push(adminOnly);
       }
 
-      middlewares.push((ctx) => this.sendNotification(cfg, ctx));
-      this.bot.command(cfg.command, ...middlewares);
+      middlewares.push((ctx: Context) => this.sendNotification(cfg, ctx));
+      this.bot.command(cfg.command, ...middlewares as [any, ...any[]]); // Cast to tuple
     });
 
     await this.bot.telegram.setMyCommands(userCommands, { scope: { type: 'all_private_chats' } });
   };
 
-  sendNotification = async (cfg, ctx = null) => {
+  sendNotification = async (cfg: ActionConfig, ctx: Context | null = null): Promise<void> => {
     console.log(`CompanyTgBot.${cfg.command}:start`);
-    console.info(ctx.from.id);
+    if(ctx?.from?.id){
+        console.info(ctx.from.id);
+    }
 
-    await cfg.service.execute((templateData) => {
+    await cfg.service.execute((templateData: any) => {
       const html = cfg.render(templateData);
 
       if (ctx) {
@@ -96,7 +104,7 @@ export default class CompanyTgBot {
     });
   };
 
-  async stop(signal) {
+  async stop(signal: string): Promise<void> {
     console.log(`CompanyTgBot.stop(${signal})`);
     await this.bot.stop(signal);
   }
