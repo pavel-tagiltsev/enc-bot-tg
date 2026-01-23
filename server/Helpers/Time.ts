@@ -1,9 +1,9 @@
 export default class Time {
-  static formatYMD(date) {
+  static formatYMD(date: Date): string {
     return date.toISOString().split('T')[0];
   }
 
-  static fullDaysDiff(date) {
+  static fullDaysDiff(date: string | Date): number {
     const today = new Date();
     const d = new Date(date);
 
