@@ -7,19 +7,23 @@ dotenv.config({
   path: isProduction ? '.env.prod' : '.env.local',
 });
 
-const companyBot = new CompanyTgBot(process.env.TELEGRAM_TOKEN);
+if (!process.env.TELEGRAM_TOKEN) {
+  throw new Error('TELEGRAM_TOKEN is not defined in the environment variables');
+}
+
+const companyBot: CompanyTgBot = new CompanyTgBot(process.env.TELEGRAM_TOKEN);
 
 companyBot
   .launch()
   .then(() => {
     console.log(`✅ Bot started (${isProduction ? 'production' : 'local'})`);
   })
-  .catch((err) => {
+  .catch((err: Error) => {
     console.error('❌ Bot failed to start', err);
     process.exit(1);
   });
 
-const shutdown = async (signal) => {
+const shutdown = async (signal: string): Promise<void> => {
   console.log(`🛑 Shutdown: ${signal}`);
   try {
     await companyBot.stop(signal);
@@ -31,12 +35,12 @@ const shutdown = async (signal) => {
 process.once('SIGINT', shutdown);
 process.once('SIGTERM', shutdown);
 
-process.on('unhandledRejection', (err) => {
+process.on('unhandledRejection', (err: Error) => {
   console.error('UnhandledRejection', err);
   process.exit(1);
 });
 
-process.on('uncaughtException', (err) => {
+process.on('uncaughtException', (err: Error) => {
   console.error('UncaughtException', err);
   process.exit(1);
 });
