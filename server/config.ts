@@ -1,8 +1,6 @@
 import SubscriptionDebtNotification from './UseCases/SubscriptionDebtNotification.js';
 import View from './Helpers/View.js';
 import UnmarkedLessonsNotification from './UseCases/UnmarkedLessonsNotification.js';
-import { TemplateData as UnmarkedLessonsTemplateData } from './UseCases/UnmarkedLessonsNotification.js';
-import { TemplateData as SubscriptionDebtTemplateData } from './UseCases/SubscriptionDebtNotification.js';
 
 interface StaticExecuteService {
   execute: (send: (data: any) => void) => Promise<void>;
