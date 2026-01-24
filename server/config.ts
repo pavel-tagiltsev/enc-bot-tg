@@ -4,9 +4,6 @@ import UnmarkedLessonsNotification from './UseCases/UnmarkedLessonsNotification.
 import { TemplateData as UnmarkedLessonsTemplateData } from './UseCases/UnmarkedLessonsNotification.js';
 import { TemplateData as SubscriptionDebtTemplateData } from './UseCases/SubscriptionDebtNotification.js';
 
-// Define interfaces for the types used in actionsConfig
-
-// For services that are classes with a static execute method
 interface StaticExecuteService {
   execute: (send: (data: any) => void) => Promise<void>;
 }
@@ -27,7 +24,7 @@ export interface ActionConfig {
 export const actionsConfig: Record<string, ActionConfig> = {
   start: {
     service: { execute: async (cb: (data: any) => void) => cb(null) },
-    render: (data: any) => 'Запуск бота', // Ensure render also has a type for data
+    render: (data: any) => 'Запуск бота',
     cronTime: null,
     adminOnly: false,
     command: 'start',
@@ -42,7 +39,7 @@ export const actionsConfig: Record<string, ActionConfig> = {
     description: 'Помощь',
   },
   subscriptionDebt: {
-    service: SubscriptionDebtNotification, // SubscriptionDebtNotification is a class with static execute
+    service: SubscriptionDebtNotification,
     render: View.renderSubscriptionDebtNotificationTemplate,
     cronTime: '0 9 * * 1-5',
     adminOnly: true,
@@ -50,7 +47,7 @@ export const actionsConfig: Record<string, ActionConfig> = {
     description: 'Показать все задолженности по ученикам',
   },
   AllUnmarkedLessons: {
-    service: UnmarkedLessonsNotification, // UnmarkedLessonsNotification is a class with static execute
+    service: UnmarkedLessonsNotification,
     render: View.renderUnmarkedLessonsNotificationTemplate,
     cronTime: '5 9 * * 1-5',
     adminOnly: true,
@@ -58,7 +55,7 @@ export const actionsConfig: Record<string, ActionConfig> = {
     description: 'Показать неотмеченные уроки по учителям',
   },
   unmarkedLessons: {
-    service: UnmarkedLessonsNotification, // UnmarkedLessonsNotification is a class with static execute
+    service: UnmarkedLessonsNotification,
     render: View.renderUnmarkedLessonsNotificationTemplate,
     cronTime: null,
     adminOnly: false,

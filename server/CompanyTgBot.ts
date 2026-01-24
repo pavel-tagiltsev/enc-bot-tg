@@ -75,7 +75,7 @@ export default class CompanyTgBot {
       }
 
       middlewares.push((ctx: Context) => this.sendNotification(cfg, ctx));
-      this.bot.command(cfg.command, ...middlewares as [any, ...any[]]); // Cast to tuple
+      this.bot.command(cfg.command, ...middlewares as [any, ...any[]]);
     });
 
     await this.bot.telegram.setMyCommands(userCommands, { scope: { type: 'all_private_chats' } });

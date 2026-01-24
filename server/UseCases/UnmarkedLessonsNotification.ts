@@ -4,7 +4,6 @@ import Time from '../Helpers/Time.js';
 interface MoyKlassLessonRecord {
   visit: boolean;
   userId: number;
-  // Add other properties if known
 }
 
 interface MoyKlassLesson {
@@ -15,27 +14,23 @@ interface MoyKlassLesson {
   records: MoyKlassLessonRecord[];
   teacherIds: number[];
   comment?: string;
-  status?: string; // Assuming status can be optional
-  // Add other properties if known
+  status?: string;
 }
 
 interface MoyKlassManager {
   id: number;
   name: string;
-  // Add other properties if known
 }
 
 interface MoyKlassClass {
   id: number;
   name: string;
-  courseId: number; // Assuming 0 for individual
-  // Add other properties if known
+  courseId: number;
 }
 
 interface MoyKlassUser {
   id: number;
   name: string;
-  // Add other properties if known
 }
 
 interface UnmarkedLessonsGetData {
@@ -61,7 +56,7 @@ interface TemplateTeacher {
   lessons: TemplateTeacherLesson[];
 }
 
-export interface TemplateData { // Added export keyword
+export interface TemplateData {
   teachers: TemplateTeacher[];
   stats: {
     totalTeachers: number;
@@ -87,8 +82,6 @@ export default class UnmarkedLessonsNotification {
             const { date, beginTime, classId, records } = lesson;
             const cls = classes.find(({ id: classIdInClasses }) => classIdInClasses === classId);
             if (!cls) {
-                // Handle case where class is not found, maybe skip or throw error
-                // For now, let's assume it always exists based on current logic
                 throw new Error(`Class with ID ${classId} not found`);
             }
             const isIndividual = cls.courseId === 0;
@@ -120,7 +113,7 @@ export default class UnmarkedLessonsNotification {
   };
 
   static getData = async (): Promise<UnmarkedLessonsGetData> => {
-    const data: UnmarkedLessonsGetData = { // Initialize with empty arrays
+    const data: UnmarkedLessonsGetData = {
       lessons: [],
       managers: [],
       classes: [],

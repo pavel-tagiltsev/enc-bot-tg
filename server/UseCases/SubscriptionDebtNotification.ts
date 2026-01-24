@@ -6,23 +6,19 @@ interface MoyKlassInvoice {
   payed: number;
   payUntil: string;
   userId: number;
-  // Potentially other fields
 }
 
 interface MoyKlassInvoicesResponse {
   invoices: MoyKlassInvoice[];
-  // Potentially other fields
 }
 
 interface MoyKlassUser {
   id: number;
   name: string;
-  // Potentially other fields
 }
 
 interface MoyKlassUsersResponse {
   users: MoyKlassUser[];
-  // Potentially other fields
 }
 
 interface TemplateUser {
@@ -32,7 +28,7 @@ interface TemplateUser {
   earliestPayUntil: string;
 }
 
-export interface TemplateData { // Added export keyword
+export interface TemplateData {
   users: TemplateUser[];
   stats: {
     totalUsers: number;
