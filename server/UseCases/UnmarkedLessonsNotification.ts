@@ -99,7 +99,6 @@ export default class UnmarkedLessonsNotification {
       users: [],
     };
 
-    await moyKlassAPI.setToken();
     const { lessons } = await moyKlassAPI.get('/lessons', {
       params: {
         date: ['2025-09-01', Time.formatYMD(new Date())],
@@ -144,7 +143,6 @@ export default class UnmarkedLessonsNotification {
     const managers = await moyKlassAPI.get('/managers');
 
     data.managers = managers.filter(({ id }: MoyKlassManager) => uniqueUnmarkedLessonsTeacherIds.includes(id));
-    await moyKlassAPI.revokeToken();
 
     return data;
   };

@@ -1,10 +1,15 @@
-import axios, { AxiosInstance, AxiosResponse } from 'axios';
+import axios, { AxiosInstance } from 'axios';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
+// MoyKlass tokens are valid for 1 hour. We'll refresh a bit earlier.
+const TOKEN_LIFETIME_MS = 55 * 60 * 1000; // 55 minutes
+
 class MoyKlassAPI {
   private instance: AxiosInstance;
+  private accessToken: string | null = null;
+  private tokenExpiresAt: Date | null = null;
 
   constructor() {
     this.instance = axios.create({
@@ -17,26 +22,36 @@ class MoyKlassAPI {
     });
   }
 
-  async setToken(): Promise<void> {
-    const response: AxiosResponse<{ accessToken: string }> = await this.instance.post('/auth/getToken', {
-      apiKey: process.env.MOY_KLASS_API_KEY,
-    });
-    this.instance.defaults.headers.common['x-access-token'] = response.data.accessToken;
-    console.log('MoyKlassAPI.post(/auth/getToken)');
+  private isTokenExpired(): boolean {
+    return !this.tokenExpiresAt || this.tokenExpiresAt < new Date();
   }
 
-  async revokeToken(): Promise<void> {
-    await this.instance.post('/auth/revokeToken');
-    console.log('MoyKlassAPI.post(/auth/revokeToken)');
+  private async _authenticate(): Promise<void> {
+    console.log('MoyKlassAPI: Authenticating...');
+    const response = await this.instance.post<{ accessToken: string }>('/auth/getToken', {
+      apiKey: process.env.MOY_KLASS_API_KEY,
+    });
+    this.accessToken = response.data.accessToken;
+    this.instance.defaults.headers.common['x-access-token'] = this.accessToken;
+    this.tokenExpiresAt = new Date(new Date().getTime() + TOKEN_LIFETIME_MS);
+    console.log('MoyKlassAPI: New token received.');
+  }
+
+  private async ensureAuthenticated(): Promise<void> {
+    if (this.isTokenExpired()) {
+      await this._authenticate();
+    }
   }
 
   async post(path: string, body: any = {}): Promise<any> {
+    await this.ensureAuthenticated();
     console.log(`MoyKlassAPI.post(${path})`);
     const res = await this.instance.post(path, body);
     return res.data;
   }
 
   async get(path: string, options: any = {}): Promise<any> {
+    await this.ensureAuthenticated();
     console.log(`MoyKlassAPI.get(${path})`);
     const res = await this.instance.get(path, options);
     return res.data;

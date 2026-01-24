@@ -27,7 +27,6 @@ export interface TemplateData {
 
 export default class SubscriptionDebtNotification {
   static execute = async (send: (data: TemplateData) => void): Promise<void> => {
-    await moyKlassAPI.setToken();
     const invoicesRes: MoyKlassInvoicesResponse = await moyKlassAPI.get('/invoices', {
       params: {
         createdAt: ['2025-09-01', Time.formatYMD(new Date())],
@@ -50,7 +49,6 @@ export default class SubscriptionDebtNotification {
         userIds: uniqueOverduePaymentUsersIds,
       },
     });
-    await moyKlassAPI.revokeToken();
 
     const templateData: TemplateData = (usersRes.users || []).reduce(
       (acc: TemplateData, user: MoyKlassUser) => {
