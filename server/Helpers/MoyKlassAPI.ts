@@ -1,5 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
 import dotenv from 'dotenv';
+import Bottleneck from 'bottleneck';
 
 dotenv.config();
 
@@ -10,6 +11,7 @@ class MoyKlassAPI {
   private instance: AxiosInstance;
   private accessToken: string | null = null;
   private tokenExpiresAt: Date | null = null;
+  private limiter: Bottleneck;
 
   constructor() {
     this.instance = axios.create({
@@ -19,6 +21,12 @@ class MoyKlassAPI {
           'Content-Type': 'application/json',
         },
       },
+    });
+
+    // Rate limit: 5 requests per second (200ms between each)
+    this.limiter = new Bottleneck({
+      maxConcurrent: 1,
+      minTime: 200,
     });
   }
 
@@ -39,22 +47,26 @@ class MoyKlassAPI {
 
   private async ensureAuthenticated(): Promise<void> {
     if (this.isTokenExpired()) {
-      await this._authenticate();
+      await this.limiter.schedule(() => this._authenticate());
     }
   }
 
   async post(path: string, body: any = {}): Promise<any> {
     await this.ensureAuthenticated();
-    console.log(`MoyKlassAPI.post(${path})`);
-    const res = await this.instance.post(path, body);
-    return res.data;
+    return this.limiter.schedule(async () => {
+      console.log(`MoyKlassAPI.post(${path})`);
+      const res = await this.instance.post(path, body);
+      return res.data;
+    });
   }
 
   async get(path: string, options: any = {}): Promise<any> {
     await this.ensureAuthenticated();
-    console.log(`MoyKlassAPI.get(${path})`);
-    const res = await this.instance.get(path, options);
-    return res.data;
+    return this.limiter.schedule(async () => {
+      console.log(`MoyKlassAPI.get(${path})`);
+      const res = await this.instance.get(path, options);
+      return res.data;
+    });
   }
 }
 
