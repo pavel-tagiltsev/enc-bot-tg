@@ -153,14 +153,11 @@ export default class UnmarkedLessonsNotification {
 
     data.users = users;
 
-    const { classes } = await moyKlassAPI.get('/classes', {
+    data.classes = await moyKlassAPI.get('/classes', {
       params: {
         classId: [...new Set(data.lessons.map(({ classId }) => classId))],
       },
     });
-
-    data.classes = classes;
-
 
     const unmarkedLessonsTeacherIds = data.lessons.flatMap(({ teacherIds }) => teacherIds);
     const uniqueUnmarkedLessonsTeacherIds = [...new Set(unmarkedLessonsTeacherIds)];
