@@ -1,9 +1,11 @@
-import axios from 'axios';
+import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
 class MoyKlassAPI {
+  private instance: AxiosInstance;
+
   constructor() {
     this.instance = axios.create({
       baseURL: 'https://api.moyklass.com/v1/company',
@@ -15,26 +17,26 @@ class MoyKlassAPI {
     });
   }
 
-  async setToken() {
-    const response = await this.instance.post('/auth/getToken', {
+  async setToken(): Promise<void> {
+    const response: AxiosResponse<{ accessToken: string }> = await this.instance.post('/auth/getToken', {
       apiKey: process.env.MOY_KLASS_API_KEY,
     });
     this.instance.defaults.headers.common['x-access-token'] = response.data.accessToken;
     console.log('MoyKlassAPI.post(/auth/getToken)');
   }
 
-  async revokeToken() {
+  async revokeToken(): Promise<void> {
     await this.instance.post('/auth/revokeToken');
     console.log('MoyKlassAPI.post(/auth/revokeToken)');
   }
 
-  async post(path, body = {}) {
+  async post(path: string, body: any = {}): Promise<any> {
     console.log(`MoyKlassAPI.post(${path})`);
     const res = await this.instance.post(path, body);
     return res.data;
   }
 
-  async get(path, options = {}) {
+  async get(path: string, options: any = {}): Promise<any> {
     console.log(`MoyKlassAPI.get(${path})`);
     const res = await this.instance.get(path, options);
     return res.data;

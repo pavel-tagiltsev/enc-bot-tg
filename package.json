@@ -5,9 +5,11 @@
   "license": "ISC",
   "author": "<pavel.tagiltsef@gmail.com>",
   "type": "module",
-  "main": "server.js",
+  "main": "dist/server.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "ts-node server.ts",
+    "build": "tsc",
+    "serve": "node dist/server.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
@@ -21,10 +23,16 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
+    "@types/cron": "^2.0.1",
+    "@types/node": "^25.0.10",
+    "@typescript-eslint/eslint-plugin": "^8.53.1",
+    "@typescript-eslint/parser": "^8.53.1",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
     "globals": "^17.0.0",
-    "prettier": "^3.7.4"
+    "prettier": "^3.7.4",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
   }
 }

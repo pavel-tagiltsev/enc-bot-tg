@@ -2,18 +2,35 @@ import SubscriptionDebtNotification from './UseCases/SubscriptionDebtNotificatio
 import View from './Helpers/View.js';
 import UnmarkedLessonsNotification from './UseCases/UnmarkedLessonsNotification.js';
 
-export const actionsConfig = {
+interface StaticExecuteService {
+  execute: (send: (data: any) => void) => Promise<void>;
+}
+
+interface RenderFunction<T> {
+  (data: T): string;
+}
+
+export interface ActionConfig {
+  service: StaticExecuteService | { execute: (send: (data: any) => void) => Promise<void> };
+  render: RenderFunction<any>;
+  cronTime: string | null;
+  adminOnly: boolean;
+  command: string;
+  description: string;
+}
+
+export const actionsConfig: Record<string, ActionConfig> = {
   start: {
-    service: { execute: (cb) => cb() },
-    render: () => 'Запуск бота',
+    service: { execute: async (cb: (data: any) => void) => cb(null) },
+    render: (data: any) => 'Запуск бота',
     cronTime: null,
     adminOnly: false,
     command: 'start',
     description: 'Запуск бота',
   },
   help: {
-    service: { execute: (cb) => cb() },
-    render: () => 'Помощь',
+    service: { execute: async (cb: (data: any) => void) => cb(null) },
+    render: (data: any) => 'Помощь',
     cronTime: null,
     adminOnly: false,
     command: 'help',
