@@ -1,25 +1,14 @@
 import moyKlassAPI from '../Helpers/MoyKlassAPI.js';
 import Time from '../Helpers/Time.js';
+import type { components } from '../types/moyklass-api.js';
 
-interface MoyKlassInvoice {
-  price: number;
-  payed: number;
-  payUntil: string;
-  userId: number;
-}
+type MoyKlassInvoice = components['schemas']['UserInvoice'];
 
-interface MoyKlassInvoicesResponse {
-  invoices: MoyKlassInvoice[];
-}
+type MoyKlassInvoicesResponse = components['schemas']['UserInvoices'];
 
-interface MoyKlassUser {
-  id: number;
-  name: string;
-}
+type MoyKlassUser = components['schemas']['User'];
 
-interface MoyKlassUsersResponse {
-  users: MoyKlassUser[];
-}
+type MoyKlassUsersResponse = components['schemas']['Users'];
 
 interface TemplateUser {
   id: number;
@@ -46,7 +35,7 @@ export default class SubscriptionDebtNotification {
       },
     });
 
-    const overduePaymentInvoices: MoyKlassInvoice[] = invoicesRes.invoices.filter((invoice: MoyKlassInvoice) => {
+    const overduePaymentInvoices: MoyKlassInvoice[] = (invoicesRes.invoices || []).filter((invoice: MoyKlassInvoice) => {
       const isDebt = invoice.price !== invoice.payed;
       const isOverdue = new Date(invoice.payUntil) < new Date(Time.formatYMD(new Date()));
 
@@ -63,7 +52,7 @@ export default class SubscriptionDebtNotification {
     });
     await moyKlassAPI.revokeToken();
 
-    const templateData: TemplateData = usersRes.users.reduce(
+    const templateData: TemplateData = (usersRes.users || []).reduce(
       (acc: TemplateData, user: MoyKlassUser) => {
         const userInvoices: MoyKlassInvoice[] = overduePaymentInvoices.filter((invoice: MoyKlassInvoice) => invoice.userId === user.id);
         const userTotalDebt: number = userInvoices.reduce(
@@ -74,7 +63,7 @@ export default class SubscriptionDebtNotification {
         const userEarliestPayUntilDate: string = Time.formatYMD(new Date(Math.min(...userPayUntilDates.map(date => date.getTime()))));
 
         acc.users.push({
-          id: user.id,
+          id: user.id!,
           name: user.name,
           totalDebt: userTotalDebt,
           earliestPayUntil: userEarliestPayUntilDate,

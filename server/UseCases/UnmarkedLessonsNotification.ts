@@ -1,44 +1,23 @@
 import moyKlassAPI from '../Helpers/MoyKlassAPI.js';
 import Time from '../Helpers/Time.js';
+import type { components } from '../types/moyklass-api.js';
 
-interface MoyKlassLessonRecord {
-  visit: boolean;
-  userId: number;
-}
+type MoyKlassLessonRecord = components['schemas']['LessonRecord'];
 
-interface MoyKlassLesson {
-  id: number;
-  date: string;
-  beginTime: string;
-  classId: number;
-  records: MoyKlassLessonRecord[];
-  teacherIds: number[];
-  comment?: string;
-  status?: string;
-}
+type MoyKlassLesson = components['schemas']['Lesson'];
 
-interface MoyKlassManager {
-  id: number;
-  name: string;
-}
+type MoyKlassManager = components['schemas']['Manager'];
 
-interface MoyKlassClass {
-  id: number;
-  name: string;
-  courseId: number;
-}
+type MoyKlassClass = components['schemas']['Class'];
 
-interface MoyKlassUser {
-  id: number;
-  name: string;
-}
+type MoyKlassUser = components['schemas']['User'];
 
-interface UnmarkedLessonsGetData {
+type UnmarkedLessonsGetData = {
   lessons: MoyKlassLesson[];
   managers: MoyKlassManager[];
   classes: MoyKlassClass[];
   users: MoyKlassUser[];
-}
+};
 
 interface TemplateTeacherLesson {
   date: string;
@@ -72,10 +51,10 @@ export default class UnmarkedLessonsNotification {
       (acc: TemplateData, manager: MoyKlassManager) => {
         const { teachers, stats } = acc;
         const { id, name } = manager;
-        const teacherLessons: MoyKlassLesson[] = lessons.filter(({ teacherIds }) => teacherIds.includes(id));
+        const teacherLessons: MoyKlassLesson[] = lessons.filter(({ teacherIds }) => teacherIds && teacherIds.includes(id!));
 
         teachers.push({
-          id,
+          id: id!,
           name,
           totalLessons: teacherLessons.length,
           lessons: teacherLessons.map((lesson: MoyKlassLesson) => {
@@ -86,7 +65,7 @@ export default class UnmarkedLessonsNotification {
             }
             const isIndividual = cls.courseId === 0;
 
-            const userId = isIndividual && records[0] ? records[0].userId : null;
+            const userId = isIndividual && records?.[0] ? records[0].userId : null;
             const userName = userId ? users.find(({ id: userIdInUsers }) => userIdInUsers === userId)?.name || null : null;
 
 
@@ -94,7 +73,7 @@ export default class UnmarkedLessonsNotification {
               date,
               beginTime,
               classId: classId,
-              className: cls.name,
+              className: cls.name ?? 'N/A',
               userId: userId,
               userName: userName,
             };
@@ -134,7 +113,7 @@ export default class UnmarkedLessonsNotification {
     data.lessons = lessons.filter((lesson: MoyKlassLesson) => {
       const { records, comment, status } = lesson;
       const isHasStatus = status;
-      const isNoVisits = records.every(({ visit }) => !visit);
+      const isNoVisits = (records || []).every((record: MoyKlassLessonRecord) => !record.visit);
       const isNoReasonComment = !comment || !comment.trim().startsWith('#');
 
       return isNoVisits && isNoReasonComment && isHasStatus;
@@ -144,7 +123,7 @@ export default class UnmarkedLessonsNotification {
       params: {
         userIds: [
           ...new Set(
-            data.lessons.flatMap(({ records }) => records.flatMap(({ userId }) => userId))
+            data.lessons.flatMap((lesson) => (lesson.records || []).flatMap((record: MoyKlassLessonRecord) => record.userId))
           ),
         ],
         limit: 500,

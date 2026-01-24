@@ -13,7 +13,8 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "generate:types": "curl -o openapi.json https://api.moyklass.com/openapi.json && openapi-typescript openapi.json -o server/types/moyklass-api.d.ts && rm openapi.json"
   },
   "dependencies": {
     "axios": "^1.13.2",
@@ -31,6 +32,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
     "globals": "^17.0.0",
+    "openapi-typescript": "^7.10.1",
     "prettier": "^3.7.4",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
