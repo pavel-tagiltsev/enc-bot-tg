@@ -1,17 +1,9 @@
-import dotenv from 'dotenv';
 import CompanyTgBot from './server/CompanyTgBot.js';
+import { env } from './server/env.js';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
-dotenv.config({
-  path: isProduction ? '.env.prod' : '.env.local',
-});
-
-if (!process.env.TELEGRAM_TOKEN) {
-  throw new Error('TELEGRAM_TOKEN is not defined in the environment variables');
-}
-
-const companyBot: CompanyTgBot = new CompanyTgBot(process.env.TELEGRAM_TOKEN);
+const companyBot: CompanyTgBot = new CompanyTgBot(env.TELEGRAM_TOKEN);
 
 companyBot
   .launch()
