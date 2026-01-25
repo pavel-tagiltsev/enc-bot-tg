@@ -1,7 +1,15 @@
-import axios, { AxiosInstance } from 'axios';
+import axios, { AxiosInstance, isAxiosError } from 'axios';
 import dotenv from 'dotenv';
 import Bottleneck from 'bottleneck';
 import { paths, components } from '../types/moyklass-api.js';
+import {
+  MoyKlassApiError,
+  MoyKlassAuthError,
+  MoyKlassBadRequestError,
+  MoyKlassNotFoundError,
+  MoyKlassRateLimitError,
+  MoyKlassNetworkError,
+} from './MoyKlassAPIErrors.js'; // Note the .js extension
 
 dotenv.config();
 
@@ -44,13 +52,23 @@ class MoyKlassAPI {
 
   private async _authenticate(): Promise<void> {
     console.log('MoyKlassAPI: Authenticating...');
-    const response = await this.instance.post<{ accessToken: string }>('/auth/getToken', {
-      apiKey: process.env.MOY_KLASS_API_KEY,
-    });
-    this.accessToken = response.data.accessToken;
-    this.instance.defaults.headers.common['x-access-token'] = this.accessToken;
-    this.tokenExpiresAt = new Date(new Date().getTime() + TOKEN_LIFETIME_MS);
-    console.log('MoyKlassAPI: New token received.');
+    try {
+      const response = await this.instance.post<{ accessToken: string }>('/auth/getToken', {
+        apiKey: process.env.MOY_KLASS_API_KEY,
+      });
+      this.accessToken = response.data.accessToken;
+      this.instance.defaults.headers.common['x-access-token'] = this.accessToken;
+      this.tokenExpiresAt = new Date(new Date().getTime() + TOKEN_LIFETIME_MS);
+      console.log('MoyKlassAPI: New token received.');
+    } catch (error) {
+      if (isAxiosError(error) && error.response) {
+        if (error.response.status === 401) {
+          throw new MoyKlassAuthError('Failed to authenticate with MoyKlass API. Invalid API Key.');
+        }
+        throw new MoyKlassApiError(`MoyKlass API error during authentication: ${error.response.status} - ${error.response.statusText}`, error.response.status);
+      }
+      throw new MoyKlassNetworkError('Network error or unexpected response during authentication.', error as Error);
+    }
   }
 
   private async ensureAuthenticated(): Promise<void> {
@@ -61,15 +79,33 @@ class MoyKlassAPI {
 
   private async post(path: string, body: any = {}): Promise<any> {
     await this.ensureAuthenticated();
-    const result = await this.limiter.schedule(async () => {
-      console.log(`MoyKlassAPI.post(${path})`);
-      const res = await this.instance.post(path, body);
-      return res.data;
-    });
-    // Invalidate cache on any POST request as a simple strategy
-    this.cache.clear();
-    console.log('MoyKlassAPI: Cache cleared due to POST request.');
-    return result;
+    try {
+      const result = await this.limiter.schedule(async () => {
+        console.log(`MoyKlassAPI.post(${path})`);
+        const res = await this.instance.post(path, body);
+        return res.data;
+      });
+      // Invalidate cache on any POST request as a simple strategy
+      this.cache.clear();
+      console.log('MoyKlassAPI: Cache cleared due to POST request.');
+      return result;
+    } catch (error) {
+      if (isAxiosError(error) && error.response) {
+        switch (error.response.status) {
+          case 400:
+            throw new MoyKlassBadRequestError(`Bad request for ${path}: ${JSON.stringify(error.response.data)}`);
+          case 401:
+            throw new MoyKlassAuthError('Unauthorized access to MoyKlass API.');
+          case 404:
+            throw new MoyKlassNotFoundError(`Resource not found at ${path}.`);
+          case 429:
+            throw new MoyKlassRateLimitError('MoyKlass API rate limit exceeded.');
+          default:
+            throw new MoyKlassApiError(`MoyKlass API error for POST ${path}: ${error.response.status} - ${error.response.statusText}`, error.response.status);
+        }
+      }
+      throw new MoyKlassNetworkError(`Network error or unexpected response for POST ${path}.`, error as Error);
+    }
   }
 
   private async get(path: string, options: any = {}): Promise<any> {
@@ -83,12 +119,31 @@ class MoyKlassAPI {
       return cachedItem.data;
     }
 
-    return this.limiter.schedule(async () => {
-      console.log(`MoyKlassAPI.get(${path})`);
-      const res = await this.instance.get(path, options);
-      this.cache.set(cacheKey, { data: res.data, timestamp: Date.now() });
-      return res.data;
-    });
+    try {
+      const result = await this.limiter.schedule(async () => {
+        console.log(`MoyKlassAPI.get(${path})`);
+        const res = await this.instance.get(path, options);
+        return res.data;
+      });
+      this.cache.set(cacheKey, { data: result, timestamp: Date.now() });
+      return result;
+    } catch (error) {
+      if (isAxiosError(error) && error.response) {
+        switch (error.response.status) {
+          case 400:
+            throw new MoyKlassBadRequestError(`Bad request for ${path}: ${JSON.stringify(error.response.data)}`);
+          case 401:
+            throw new MoyKlassAuthError('Unauthorized access to MoyKlass API.');
+          case 404:
+            throw new MoyKlassNotFoundError(`Resource not found at ${path}.`);
+          case 429:
+            throw new MoyKlassRateLimitError('MoyKlass API rate limit exceeded.');
+          default:
+            throw new MoyKlassApiError(`MoyKlass API error for GET ${path}: ${error.response.status} - ${error.response.statusText}`, error.response.status);
+        }
+      }
+      throw new MoyKlassNetworkError(`Network error or unexpected response for GET ${path}.`, error as Error);
+    }
   }
 
   public async getInvoices(params: GetInvoicesParams): Promise<components['schemas']['UserInvoices']> {
