@@ -2,7 +2,7 @@
   "apps": [
     {
       "name": "enc-bot-tg",
-      "script": "server.js",
+      "script": "dist/server.js",
       "cwd": "/opt/projects/enc-bot-tg",
       "exec_mode": "fork",
       "interpreter": "node",
