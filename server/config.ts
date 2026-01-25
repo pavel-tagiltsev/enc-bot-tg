@@ -1,6 +1,10 @@
 import SubscriptionDebtNotification from './UseCases/SubscriptionDebtNotification.js';
 import View from './Helpers/View.js';
 import UnmarkedLessonsNotification from './UseCases/UnmarkedLessonsNotification.js';
+import MoyKlassAPI from './Helpers/MoyKlassAPI.js';
+import { env } from './env.js';
+
+export const moyKlassAPI = new MoyKlassAPI({ apiKey: env.MOY_KLASS_API_KEY });
 
 interface StaticExecuteService {
   execute: (send: (data: any) => void) => Promise<void>;

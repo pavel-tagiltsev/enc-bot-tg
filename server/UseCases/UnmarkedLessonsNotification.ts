@@ -1,4 +1,4 @@
-import moyKlassAPI from '../Helpers/MoyKlassAPI.js';
+import { moyKlassAPI } from '../config.js';
 import Time from '../Helpers/Time.js';
 import type { components } from '../types/moyklass-api.js';
 

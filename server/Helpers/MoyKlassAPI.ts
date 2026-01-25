@@ -1,5 +1,4 @@
 import axios, { AxiosInstance, isAxiosError } from 'axios';
-import dotenv from 'dotenv';
 import Bottleneck from 'bottleneck';
 import { paths, components } from '../types/moyklass-api.js';
 import {
@@ -9,9 +8,7 @@ import {
   MoyKlassNotFoundError,
   MoyKlassRateLimitError,
   MoyKlassNetworkError,
-} from './MoyKlassAPIErrors.js'; // Note the .js extension
-
-dotenv.config();
+} from './MoyKlassAPIErrors.js';
 
 // MoyKlass tokens are valid for 1 hour. We'll refresh a bit earlier.
 const TOKEN_LIFETIME_MS = 55 * 60 * 1000; // 55 minutes
@@ -22,14 +19,16 @@ type GetUsersParams = paths['/v1/company/users']['get']['parameters']['query'];
 type GetLessonsParams = paths['/v1/company/lessons']['get']['parameters']['query'];
 type GetClassesParams = paths['/v1/company/classes']['get']['parameters']['query'];
 
-class MoyKlassAPI {
+export default class MoyKlassAPI {
   private instance: AxiosInstance;
+  private apiKey: string;
   private accessToken: string | null = null;
   private tokenExpiresAt: Date | null = null;
   private limiter: Bottleneck;
   private cache = new Map<string, { data: any; timestamp: number }>();
 
-  constructor() {
+  constructor({ apiKey }: { apiKey: string }) {
+    this.apiKey = apiKey;
     this.instance = axios.create({
       baseURL: 'https://api.moyklass.com/v1/company',
       headers: {
@@ -54,7 +53,7 @@ class MoyKlassAPI {
     console.log('MoyKlassAPI: Authenticating...');
     try {
       const response = await this.instance.post<{ accessToken: string }>('/auth/getToken', {
-        apiKey: process.env.MOY_KLASS_API_KEY,
+        apiKey: this.apiKey,
       });
       this.accessToken = response.data.accessToken;
       this.instance.defaults.headers.common['x-access-token'] = this.accessToken;
@@ -166,6 +165,3 @@ class MoyKlassAPI {
     return this.get('/managers');
   }
 }
-
-const moyKlassAPI = new MoyKlassAPI();
-export default moyKlassAPI;
