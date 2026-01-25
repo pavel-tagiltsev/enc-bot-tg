@@ -1,14 +1,7 @@
 import { moyKlassAPI } from '../config.js';
 import Time from '../Helpers/Time.js';
-import type { components } from '../types/moyklass-api.js';
-
-type MoyKlassInvoice = components['schemas']['UserInvoice'];
-
-type MoyKlassInvoicesResponse = components['schemas']['UserInvoices'];
-
-type MoyKlassUser = components['schemas']['User'];
-
-type MoyKlassUsersResponse = components['schemas']['Users'];
+import { Invoice } from '../Domain/Invoice.js';
+import { User } from '../Domain/User.js';
 
 interface TemplateUser {
   id: number;
@@ -27,37 +20,34 @@ export interface TemplateData {
 
 export default class SubscriptionDebtNotification {
   static execute = async (send: (data: TemplateData) => void): Promise<void> => {
-    const invoicesRes = await moyKlassAPI.getInvoices({
+    const allInvoices = await moyKlassAPI.getInvoices({
       createdAt: ['2025-09-01', Time.formatYMD(new Date())],
       includeUserSubscriptions: true,
     });
 
-    const overduePaymentInvoices: MoyKlassInvoice[] = (invoicesRes.invoices || []).filter((invoice: MoyKlassInvoice) => {
-      const isDebt = invoice.price !== invoice.payed;
-      const isOverdue = new Date(invoice.payUntil) < new Date(Time.formatYMD(new Date()));
+    const today = new Date(Time.formatYMD(new Date()));
+    const overduePaymentInvoices = allInvoices.filter((invoice) => invoice.isDebt && invoice.isOverdue(today));
 
-      return isDebt && isOverdue;
-    });
-
-    const overduePaymentUsersIds: number[] = overduePaymentInvoices.map((invoice: MoyKlassInvoice) => invoice.userId);
+    const overduePaymentUsersIds = overduePaymentInvoices.map((invoice) => invoice.userId);
     const uniqueOverduePaymentUsersIds = [...new Set(overduePaymentUsersIds)];
 
-    const usersRes = await moyKlassAPI.getUsers({
+    if (uniqueOverduePaymentUsersIds.length === 0) {
+      send({ users: [], stats: { totalUsers: 0, totalDebt: 0 } });
+      return;
+    }
+
+    const users = await moyKlassAPI.getUsers({
       userIds: uniqueOverduePaymentUsersIds,
     });
 
-    const templateData: TemplateData = (usersRes.users || []).reduce(
-      (acc: TemplateData, user: MoyKlassUser) => {
-        const userInvoices: MoyKlassInvoice[] = overduePaymentInvoices.filter((invoice: MoyKlassInvoice) => invoice.userId === user.id);
-        const userTotalDebt: number = userInvoices.reduce(
-          (sum: number, invoice: MoyKlassInvoice) => sum + (invoice.price - invoice.payed),
-          0
-        );
-        const userPayUntilDates: Date[] = userInvoices.map((invoice: MoyKlassInvoice) => new Date(invoice.payUntil));
-        const userEarliestPayUntilDate: string = Time.formatYMD(new Date(Math.min(...userPayUntilDates.map(date => date.getTime()))));
+    const templateData: TemplateData = users.reduce(
+      (acc: TemplateData, user: User) => {
+        const userInvoices = overduePaymentInvoices.filter((invoice) => invoice.userId === user.id);
+        const userTotalDebt = Invoice.calculateTotalDebt(userInvoices);
+        const userEarliestPayUntilDate = Time.formatYMD(Invoice.findEarliestPayUntil(userInvoices));
 
         acc.users.push({
-          id: user.id!,
+          id: user.id,
           name: user.name,
           totalDebt: userTotalDebt,
           earliestPayUntil: userEarliestPayUntilDate,

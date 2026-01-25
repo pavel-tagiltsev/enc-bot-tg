@@ -1,23 +1,16 @@
 import { moyKlassAPI } from '../config.js';
 import Time from '../Helpers/Time.js';
-import type { components } from '../types/moyklass-api.js';
+import { Lesson } from '../Domain/Lesson.js';
+import { Manager } from '../Domain/Manager.js';
+import { Class } from '../Domain/Class.js';
+import { User } from '../Domain/User.js';
 
-type MoyKlassLessonRecord = components['schemas']['LessonRecord'];
-
-type MoyKlassLesson = components['schemas']['Lesson'];
-
-type MoyKlassManager = components['schemas']['Manager'];
-
-type MoyKlassClass = components['schemas']['Class'];
-
-type MoyKlassUser = components['schemas']['User'];
-
-type UnmarkedLessonsGetData = {
-  lessons: MoyKlassLesson[];
-  managers: MoyKlassManager[];
-  classes: MoyKlassClass[];
-  users: MoyKlassUser[];
-};
+interface UnmarkedLessonsGetData {
+  lessons: Lesson[];
+  managers: Manager[];
+  classes: Class[];
+  users: User[];
+}
 
 interface TemplateTeacherLesson {
   date: string;
@@ -48,34 +41,33 @@ export default class UnmarkedLessonsNotification {
     const { lessons, managers, classes, users }: UnmarkedLessonsGetData = await this.getData();
 
     const templateData: TemplateData = managers.reduce(
-      (acc: TemplateData, manager: MoyKlassManager) => {
+      (acc: TemplateData, manager: Manager) => {
         const { teachers, stats } = acc;
         const { id, name } = manager;
-        const teacherLessons: MoyKlassLesson[] = lessons.filter(({ teacherIds }) => teacherIds && teacherIds.includes(id!));
+        const teacherLessons = lessons.filter((lesson) => lesson.teacherIds.includes(id));
 
         teachers.push({
-          id: id!,
-          name,
+          id: id,
+          name: name,
           totalLessons: teacherLessons.length,
-          lessons: teacherLessons.map((lesson: MoyKlassLesson) => {
+          lessons: teacherLessons.map((lesson: Lesson) => {
             const { date, beginTime, classId, records } = lesson;
-            const cls = classes.find(({ id: classIdInClasses }) => classIdInClasses === classId);
+            const cls = classes.find((c) => c.id === classId);
             if (!cls) {
                 throw new Error(`Class with ID ${classId} not found`);
             }
             const isIndividual = cls.courseId === 0;
 
-            const userId = isIndividual && records?.[0] ? records[0].userId : null;
-            const userName = userId ? users.find(({ id: userIdInUsers }) => userIdInUsers === userId)?.name || null : null;
-
+            const userId = isIndividual && records[0] ? records[0].userId : null;
+            const user = userId ? users.find((u) => u.id === userId) : null;
 
             return {
-              date,
+              date: Time.formatYMD(date),
               beginTime,
-              classId: classId,
-              className: cls.name ?? 'N/A',
-              userId: userId,
-              userName: userName,
+              classId,
+              className: cls.name,
+              userId: user ? user.id : null,
+              userName: user ? user.name : null,
             };
           }),
         });
@@ -92,14 +84,7 @@ export default class UnmarkedLessonsNotification {
   };
 
   static getData = async (): Promise<UnmarkedLessonsGetData> => {
-    const data: UnmarkedLessonsGetData = {
-      lessons: [],
-      managers: [],
-      classes: [],
-      users: [],
-    };
-
-    const { lessons } = await moyKlassAPI.getLessons({
+    const allLessons = await moyKlassAPI.getLessons({
       date: ['2025-09-01', Time.formatYMD(new Date())],
       includeRecords: true,
       limit: 500,
@@ -107,37 +92,24 @@ export default class UnmarkedLessonsNotification {
       sortDirection: 'desc',
     });
 
-    data.lessons = (lessons || []).filter((lesson: MoyKlassLesson) => {
-      const { records, comment, status } = lesson;
-      const isHasStatus = status;
-      const isNoVisits = (records || []).every((record: MoyKlassLessonRecord) => !record.visit);
-      const isNoReasonComment = !comment || !comment.trim().startsWith('#');
+    const unmarkedLessons = allLessons.filter(lesson => lesson.isUnmarked);
 
-      return isNoVisits && isNoReasonComment && isHasStatus;
-    });
+    if (unmarkedLessons.length === 0) {
+      return { lessons: [], managers: [], classes: [], users: [] };
+    }
+    
+    const userIds = [...new Set(unmarkedLessons.flatMap((lesson) => (lesson.records || []).flatMap((record) => record.userId)))].filter(Boolean) as number[];
+    const classIds = [...new Set(unmarkedLessons.map((lesson) => lesson.classId))];
+    const teacherIds = [...new Set(unmarkedLessons.flatMap((lesson) => lesson.teacherIds))];
+    
+    const [users, classes, allManagers] = await Promise.all([
+      userIds.length > 0 ? moyKlassAPI.getUsers({ userIds }) : Promise.resolve([]),
+      classIds.length > 0 ? moyKlassAPI.getClasses({ classId: classIds }) : Promise.resolve([]),
+      moyKlassAPI.getManagers(),
+    ]);
 
-    const { users } = await moyKlassAPI.getUsers({
-      userIds: [
-        ...new Set(
-          data.lessons.flatMap((lesson) => (lesson.records || []).flatMap((record: MoyKlassLessonRecord) => record.userId))
-        ),
-      ],
-      limit: 500,
-    });
+    const managers = allManagers.filter((manager) => teacherIds.includes(manager.id));
 
-    data.users = users || [];
-
-    data.classes = await moyKlassAPI.getClasses({
-      classId: [...new Set(data.lessons.map(({ classId }) => classId))],
-    });
-
-    const unmarkedLessonsTeacherIds = data.lessons.flatMap(({ teacherIds }) => teacherIds);
-    const uniqueUnmarkedLessonsTeacherIds = [...new Set(unmarkedLessonsTeacherIds)];
-
-    const managers = await moyKlassAPI.getManagers();
-
-    data.managers = managers.filter(({ id }: MoyKlassManager) => uniqueUnmarkedLessonsTeacherIds.includes(id));
-
-    return data;
+    return { lessons: unmarkedLessons, managers, classes, users };
   };
 }

@@ -9,6 +9,16 @@ import {
   MoyKlassRateLimitError,
   MoyKlassNetworkError,
 } from './MoyKlassAPIErrors.js';
+import { User } from '../Domain/User.js';
+import { Invoice } from '../Domain/Invoice.js';
+import { Lesson } from '../Domain/Lesson.js';
+import { Class } from '../Domain/Class.js';
+import { Manager } from '../Domain/Manager.js';
+import { UserMapper } from '../Mappers/UserMapper.js';
+import { InvoiceMapper } from '../Mappers/InvoiceMapper.js';
+import { LessonMapper } from '../Mappers/LessonMapper.js';
+import { ClassMapper } from '../Mappers/ClassMapper.js';
+import { ManagerMapper } from '../Mappers/ManagerMapper.js';
 
 // MoyKlass tokens are valid for 1 hour. We'll refresh a bit earlier.
 const TOKEN_LIFETIME_MS = 55 * 60 * 1000; // 55 minutes
@@ -76,38 +86,7 @@ export default class MoyKlassAPI {
     }
   }
 
-  private async post(path: string, body: any = {}): Promise<any> {
-    await this.ensureAuthenticated();
-    try {
-      const result = await this.limiter.schedule(async () => {
-        console.log(`MoyKlassAPI.post(${path})`);
-        const res = await this.instance.post(path, body);
-        return res.data;
-      });
-      // Invalidate cache on any POST request as a simple strategy
-      this.cache.clear();
-      console.log('MoyKlassAPI: Cache cleared due to POST request.');
-      return result;
-    } catch (error) {
-      if (isAxiosError(error) && error.response) {
-        switch (error.response.status) {
-          case 400:
-            throw new MoyKlassBadRequestError(`Bad request for ${path}: ${JSON.stringify(error.response.data)}`);
-          case 401:
-            throw new MoyKlassAuthError('Unauthorized access to MoyKlass API.');
-          case 404:
-            throw new MoyKlassNotFoundError(`Resource not found at ${path}.`);
-          case 429:
-            throw new MoyKlassRateLimitError('MoyKlass API rate limit exceeded.');
-          default:
-            throw new MoyKlassApiError(`MoyKlass API error for POST ${path}: ${error.response.status} - ${error.response.statusText}`, error.response.status);
-        }
-      }
-      throw new MoyKlassNetworkError(`Network error or unexpected response for POST ${path}.`, error as Error);
-    }
-  }
-
-  private async get(path: string, options: any = {}): Promise<any> {
+  private async get<T>(path: string, options: any = {}): Promise<T> {
     await this.ensureAuthenticated();
 
     const cacheKey = `${path}?${JSON.stringify(options)}`;
@@ -115,7 +94,7 @@ export default class MoyKlassAPI {
 
     if (cachedItem && (Date.now() - cachedItem.timestamp < CACHE_LIFETIME_MS)) {
       console.log(`MoyKlassAPI: Returning cached data for ${path}`);
-      return cachedItem.data;
+      return cachedItem.data as T;
     }
 
     try {
@@ -125,7 +104,7 @@ export default class MoyKlassAPI {
         return res.data;
       });
       this.cache.set(cacheKey, { data: result, timestamp: Date.now() });
-      return result;
+      return result as T;
     } catch (error) {
       if (isAxiosError(error) && error.response) {
         switch (error.response.status) {
@@ -145,23 +124,28 @@ export default class MoyKlassAPI {
     }
   }
 
-  public async getInvoices(params: GetInvoicesParams): Promise<components['schemas']['UserInvoices']> {
-    return this.get('/invoices', { params });
+  public async getInvoices(params: GetInvoicesParams): Promise<Invoice[]> {
+    const response = await this.get<components['schemas']['UserInvoices']>('/invoices', { params });
+    return (response.invoices || []).map((dto) => InvoiceMapper.toDomain(dto));
   }
 
-  public async getUsers(params: GetUsersParams): Promise<components['schemas']['Users']> {
-    return this.get('/users', { params });
+  public async getUsers(params: GetUsersParams): Promise<User[]> {
+    const response = await this.get<components['schemas']['Users']>('/users', { params });
+    return (response.users || []).map((dto) => UserMapper.toDomain(dto));
   }
 
-  public async getLessons(params: GetLessonsParams): Promise<components['schemas']['Lessons']> {
-    return this.get('/lessons', { params });
+  public async getLessons(params: GetLessonsParams): Promise<Lesson[]> {
+    const response = await this.get<components['schemas']['Lessons']>('/lessons', { params });
+    return (response.lessons || []).map((dto) => LessonMapper.toDomain(dto));
   }
 
-  public async getClasses(params: GetClassesParams): Promise<components['schemas']['Class'][]> {
-    return this.get('/classes', { params });
+  public async getClasses(params: GetClassesParams): Promise<Class[]> {
+    const response = await this.get<components['schemas']['Class'][]>('/classes', { params });
+    return (response || []).map((dto) => ClassMapper.toDomain(dto));
   }
 
-  public async getManagers(): Promise<components['schemas']['Manager'][]> {
-    return this.get('/managers');
+  public async getManagers(): Promise<Manager[]> {
+    const response = await this.get<components['schemas']['Manager'][]>('/managers');
+    return (response || []).map((dto) => ManagerMapper.toDomain(dto));
   }
 }
