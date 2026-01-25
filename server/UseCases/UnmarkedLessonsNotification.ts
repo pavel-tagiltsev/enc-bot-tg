@@ -99,17 +99,15 @@ export default class UnmarkedLessonsNotification {
       users: [],
     };
 
-    const { lessons } = await moyKlassAPI.get('/lessons', {
-      params: {
-        date: ['2025-09-01', Time.formatYMD(new Date())],
-        includeRecords: true,
-        limit: 500,
-        sort: 'date',
-        sortDirection: 'desc',
-      },
+    const { lessons } = await moyKlassAPI.getLessons({
+      date: ['2025-09-01', Time.formatYMD(new Date())],
+      includeRecords: true,
+      limit: 500,
+      sort: 'date',
+      sortDirection: 'desc',
     });
 
-    data.lessons = lessons.filter((lesson: MoyKlassLesson) => {
+    data.lessons = (lessons || []).filter((lesson: MoyKlassLesson) => {
       const { records, comment, status } = lesson;
       const isHasStatus = status;
       const isNoVisits = (records || []).every((record: MoyKlassLessonRecord) => !record.visit);
@@ -118,29 +116,25 @@ export default class UnmarkedLessonsNotification {
       return isNoVisits && isNoReasonComment && isHasStatus;
     });
 
-    const { users } = await moyKlassAPI.get('/users', {
-      params: {
-        userIds: [
-          ...new Set(
-            data.lessons.flatMap((lesson) => (lesson.records || []).flatMap((record: MoyKlassLessonRecord) => record.userId))
-          ),
-        ],
-        limit: 500,
-      },
+    const { users } = await moyKlassAPI.getUsers({
+      userIds: [
+        ...new Set(
+          data.lessons.flatMap((lesson) => (lesson.records || []).flatMap((record: MoyKlassLessonRecord) => record.userId))
+        ),
+      ],
+      limit: 500,
     });
 
-    data.users = users;
+    data.users = users || [];
 
-    data.classes = await moyKlassAPI.get('/classes', {
-      params: {
-        classId: [...new Set(data.lessons.map(({ classId }) => classId))],
-      },
+    data.classes = await moyKlassAPI.getClasses({
+      classId: [...new Set(data.lessons.map(({ classId }) => classId))],
     });
 
     const unmarkedLessonsTeacherIds = data.lessons.flatMap(({ teacherIds }) => teacherIds);
     const uniqueUnmarkedLessonsTeacherIds = [...new Set(unmarkedLessonsTeacherIds)];
 
-    const managers = await moyKlassAPI.get('/managers');
+    const managers = await moyKlassAPI.getManagers();
 
     data.managers = managers.filter(({ id }: MoyKlassManager) => uniqueUnmarkedLessonsTeacherIds.includes(id));
 

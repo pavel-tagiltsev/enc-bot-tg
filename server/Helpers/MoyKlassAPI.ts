@@ -1,12 +1,18 @@
 import axios, { AxiosInstance } from 'axios';
 import dotenv from 'dotenv';
 import Bottleneck from 'bottleneck';
+import { paths, components } from '../types/moyklass-api.js';
 
 dotenv.config();
 
 // MoyKlass tokens are valid for 1 hour. We'll refresh a bit earlier.
 const TOKEN_LIFETIME_MS = 55 * 60 * 1000; // 55 minutes
 const CACHE_LIFETIME_MS = 5 * 60 * 1000; // 5 minutes
+
+type GetInvoicesParams = paths['/v1/company/invoices']['get']['parameters']['query'];
+type GetUsersParams = paths['/v1/company/users']['get']['parameters']['query'];
+type GetLessonsParams = paths['/v1/company/lessons']['get']['parameters']['query'];
+type GetClassesParams = paths['/v1/company/classes']['get']['parameters']['query'];
 
 class MoyKlassAPI {
   private instance: AxiosInstance;
@@ -53,7 +59,7 @@ class MoyKlassAPI {
     }
   }
 
-  async post(path: string, body: any = {}): Promise<any> {
+  private async post(path: string, body: any = {}): Promise<any> {
     await this.ensureAuthenticated();
     const result = await this.limiter.schedule(async () => {
       console.log(`MoyKlassAPI.post(${path})`);
@@ -66,7 +72,7 @@ class MoyKlassAPI {
     return result;
   }
 
-  async get(path: string, options: any = {}): Promise<any> {
+  private async get(path: string, options: any = {}): Promise<any> {
     await this.ensureAuthenticated();
 
     const cacheKey = `${path}?${JSON.stringify(options)}`;
@@ -83,6 +89,26 @@ class MoyKlassAPI {
       this.cache.set(cacheKey, { data: res.data, timestamp: Date.now() });
       return res.data;
     });
+  }
+
+  public async getInvoices(params: GetInvoicesParams): Promise<components['schemas']['UserInvoices']> {
+    return this.get('/invoices', { params });
+  }
+
+  public async getUsers(params: GetUsersParams): Promise<components['schemas']['Users']> {
+    return this.get('/users', { params });
+  }
+
+  public async getLessons(params: GetLessonsParams): Promise<components['schemas']['Lessons']> {
+    return this.get('/lessons', { params });
+  }
+
+  public async getClasses(params: GetClassesParams): Promise<components['schemas']['Class'][]> {
+    return this.get('/classes', { params });
+  }
+
+  public async getManagers(): Promise<components['schemas']['Manager'][]> {
+    return this.get('/managers');
   }
 }
 

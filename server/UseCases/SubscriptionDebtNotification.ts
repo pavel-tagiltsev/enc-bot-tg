@@ -27,11 +27,9 @@ export interface TemplateData {
 
 export default class SubscriptionDebtNotification {
   static execute = async (send: (data: TemplateData) => void): Promise<void> => {
-    const invoicesRes: MoyKlassInvoicesResponse = await moyKlassAPI.get('/invoices', {
-      params: {
-        createdAt: ['2025-09-01', Time.formatYMD(new Date())],
-        includeUserSubscriptions: true,
-      },
+    const invoicesRes = await moyKlassAPI.getInvoices({
+      createdAt: ['2025-09-01', Time.formatYMD(new Date())],
+      includeUserSubscriptions: true,
     });
 
     const overduePaymentInvoices: MoyKlassInvoice[] = (invoicesRes.invoices || []).filter((invoice: MoyKlassInvoice) => {
@@ -44,10 +42,8 @@ export default class SubscriptionDebtNotification {
     const overduePaymentUsersIds: number[] = overduePaymentInvoices.map((invoice: MoyKlassInvoice) => invoice.userId);
     const uniqueOverduePaymentUsersIds = [...new Set(overduePaymentUsersIds)];
 
-    const usersRes: MoyKlassUsersResponse = await moyKlassAPI.get('/users', {
-      params: {
-        userIds: uniqueOverduePaymentUsersIds,
-      },
+    const usersRes = await moyKlassAPI.getUsers({
+      userIds: uniqueOverduePaymentUsersIds,
     });
 
     const templateData: TemplateData = (usersRes.users || []).reduce(
