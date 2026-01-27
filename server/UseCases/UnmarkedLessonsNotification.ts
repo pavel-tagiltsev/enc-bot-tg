@@ -52,7 +52,7 @@ export default class UnmarkedLessonsNotification {
           totalLessons: teacherLessons.length,
           lessons: teacherLessons.map((lesson: Lesson) => {
             const { date, beginTime, groupId, records } = lesson;
-            const group = groups.find((g) => g.id === groupId);
+            const group = groups.find(({ id }) => id === groupId);
             if (!group) {
                 throw new Error(`Group with ID ${groupId} not found`);
             }
@@ -97,11 +97,11 @@ export default class UnmarkedLessonsNotification {
     if (unmarkedLessons.length === 0) {
       return { lessons: [], users: [], groups: [], students: [] };
     }
-    
+
     const studentIds = [...new Set(unmarkedLessons.flatMap((lesson) => (lesson.records || []).flatMap((record) => record.studentId)))].filter(Boolean) as number[];
     const groupIds = [...new Set(unmarkedLessons.map((lesson) => lesson.groupId))];
     const teacherIds = [...new Set(unmarkedLessons.flatMap((lesson) => lesson.teacherIds))];
-    
+
     const [students, groups, allManagers] = await Promise.all([
       studentIds.length > 0 ? moyKlassAPI.getUsers({ userIds: studentIds }) : Promise.resolve([]),
       groupIds.length > 0 ? moyKlassAPI.getClasses({ classId: groupIds }) : Promise.resolve([]),
