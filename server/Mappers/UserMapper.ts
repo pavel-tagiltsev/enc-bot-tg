@@ -2,19 +2,19 @@ import { z } from 'zod';
 import { components } from '../types/moyklass-api.js';
 import { User } from '../Domain/User.js';
 
-type UserDTO = components['schemas']['User'];
+type ManagerDTO = components['schemas']['Manager'];
 
-const UserDTOSchema = z.object({
+const ManagerDTOSchema = z.object({
   id: z.number(),
-  name: z.string().nullable(),
+  name: z.string(),
 });
 
 export class UserMapper {
-  public static toDomain(dto: UserDTO): User {
-    const validatedDTO = UserDTOSchema.parse(dto);
+  public static toDomain(dto: ManagerDTO): User {
+    const validatedDTO = ManagerDTOSchema.parse(dto);
     return new User(
       validatedDTO.id,
-      validatedDTO.name || 'Unknown'
+      validatedDTO.name
     );
   }
 }

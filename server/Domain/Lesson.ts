@@ -5,8 +5,8 @@ export class Lesson {
     public readonly id: number,
     public readonly date: Date,
     public readonly beginTime: string,
-    public readonly classId: number,
-    public readonly records: { visit?: boolean; userId?: number }[],
+    public readonly groupId: number,
+    public readonly records: { visit?: boolean; studentId?: number }[],
     public readonly teacherIds: number[],
     public readonly comment?: string,
     public readonly status?: LessonStatus

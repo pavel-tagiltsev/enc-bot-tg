@@ -24,12 +24,18 @@ export class LessonMapper {
 
   public static toDomain(dto: LessonDTO): Lesson {
     const validatedDTO = LessonDTOSchema.parse(dto);
+
+    const records = validatedDTO.records.map(record => ({
+      visit: record.visit,
+      studentId: record.userId,
+    }));
+
     return new Lesson(
       validatedDTO.id,
       new Date(validatedDTO.date),
       validatedDTO.beginTime,
       validatedDTO.classId,
-      validatedDTO.records,
+      records,
       validatedDTO.teacherIds,
       validatedDTO.comment ?? undefined,
       this.mapStatus(validatedDTO.status)

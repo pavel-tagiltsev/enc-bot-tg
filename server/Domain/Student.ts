@@ -1,4 +1,4 @@
-export class Manager {
+export class Student {
   constructor(
     public readonly id: number,
     public readonly name: string
