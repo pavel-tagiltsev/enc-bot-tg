@@ -1,15 +1,12 @@
 import { User } from '../Domain/User.js';
 import { IUserRepository } from './IUserRepository.js';
+import { IMoyKlassAPI } from '../types/IMoyKlassAPI.js';
 
 export class UserRepository implements IUserRepository {
-  async findById(id: number): Promise<User | null> {
-    console.warn('UserRepository.findById not implemented.');
-    return null;
-  }
+  constructor(private readonly moyKlassAPI: IMoyKlassAPI) {}
 
   async findAll(): Promise<User[]> {
-    console.warn('UserRepository.findAll not implemented.');
-    return [];
+    return this.moyKlassAPI.getManagers();
   }
 
   async save(user: User): Promise<void> {

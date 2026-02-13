@@ -1,15 +1,19 @@
 import { Lesson } from '../Domain/Lesson.js';
 import { ILessonRepository } from './ILessonRepository.js';
+import { IMoyKlassAPI } from '../types/IMoyKlassAPI.js';
+import Time from '../Helpers/Time.js';
 
 export class LessonRepository implements ILessonRepository {
-  async findById(id: number): Promise<Lesson | null> {
-    console.warn('LessonRepository.findById not implemented.');
-    return null;
-  }
+  constructor(private readonly moyKlassAPI: IMoyKlassAPI) {}
 
-  async findAll(): Promise<Lesson[]> {
-    console.warn('LessonRepository.findAll not implemented.');
-    return [];
+  async findBetween(startDate: Date, endDate: Date): Promise<Lesson[]> {
+    return this.moyKlassAPI.getLessons({
+      date: [Time.formatYMD(startDate), Time.formatYMD(endDate)],
+      includeRecords: true,
+      limit: 500,
+      sort: 'date',
+      sortDirection: 'desc',
+    });
   }
 
   async save(lesson: Lesson): Promise<void> {

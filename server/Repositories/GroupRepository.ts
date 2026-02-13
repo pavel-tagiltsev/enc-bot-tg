@@ -1,15 +1,15 @@
 import { Group } from '../Domain/Group.js';
 import { IGroupRepository } from './IGroupRepository.js';
+import { IMoyKlassAPI } from '../types/IMoyKlassAPI.js';
 
 export class GroupRepository implements IGroupRepository {
-  async findById(id: number): Promise<Group | null> {
-    console.warn('GroupRepository.findById not implemented.');
-    return null;
-  }
+  constructor(private readonly moyKlassAPI: IMoyKlassAPI) {}
 
-  async findAll(): Promise<Group[]> {
-    console.warn('GroupRepository.findAll not implemented.');
-    return [];
+  async findByIds(ids: number[]): Promise<Group[]> {
+    if (ids.length === 0) {
+      return [];
+    }
+    return this.moyKlassAPI.getClasses({ classId: ids });
   }
 
   async save(group: Group): Promise<void> {

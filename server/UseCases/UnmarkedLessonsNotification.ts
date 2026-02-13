@@ -3,7 +3,10 @@ import { Lesson } from '../Domain/Lesson.js';
 import { User } from '../Domain/User.js';
 import { Group } from '../Domain/Group.js';
 import { Student } from '../Domain/Student.js';
-import { IMoyKlassAPI } from '../types/IMoyKlassAPI.js';
+import { ILessonRepository } from '../Repositories/ILessonRepository.js';
+import { IStudentRepository } from '../Repositories/IStudentRepository.js';
+import { IGroupRepository } from '../Repositories/IGroupRepository.js';
+import { IUserRepository } from '../Repositories/IUserRepository.js';
 
 interface UnmarkedLessonsGetData {
   lessons: Lesson[];
@@ -37,7 +40,12 @@ export interface TemplateData {
 }
 
 export default class UnmarkedLessonsNotification {
-  constructor(private readonly moyKlassAPI: IMoyKlassAPI) {}
+  constructor(
+    private readonly lessonRepository: ILessonRepository,
+    private readonly studentRepository: IStudentRepository,
+    private readonly groupRepository: IGroupRepository,
+    private readonly userRepository: IUserRepository
+  ) {}
 
   public execute = async (send: (data: TemplateData) => void): Promise<void> => {
     const { lessons, users, groups, students }: UnmarkedLessonsGetData = await this.getData();
@@ -86,13 +94,7 @@ export default class UnmarkedLessonsNotification {
   };
 
   private getData = async (): Promise<UnmarkedLessonsGetData> => {
-    const allLessons = await this.moyKlassAPI.getLessons({
-      date: ['2025-09-01', Time.formatYMD(new Date())],
-      includeRecords: true,
-      limit: 500,
-      sort: 'date',
-      sortDirection: 'desc',
-    });
+    const allLessons = await this.lessonRepository.findBetween(new Date('2025-09-01'), new Date());
 
     const unmarkedLessons = allLessons.filter((lesson) => lesson.isUnmarked);
 
@@ -107,9 +109,9 @@ export default class UnmarkedLessonsNotification {
     const teacherIds = [...new Set(unmarkedLessons.flatMap((lesson) => lesson.teacherIds))];
 
     const [students, groups, allManagers] = await Promise.all([
-      studentIds.length > 0 ? this.moyKlassAPI.getUsers({ userIds: studentIds }) : Promise.resolve([]),
-      groupIds.length > 0 ? this.moyKlassAPI.getClasses({ classId: groupIds }) : Promise.resolve([]),
-      this.moyKlassAPI.getManagers(),
+      this.studentRepository.findByIds(studentIds),
+      this.groupRepository.findByIds(groupIds),
+      this.userRepository.findAll(),
     ]);
 
     const users = allManagers.filter((manager) => teacherIds.includes(manager.id));
