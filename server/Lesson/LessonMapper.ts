@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { components } from '../types/moyklass-api.js';
-import { Lesson, LessonStatus } from '../Domain/Lesson.js';
+import { Lesson, LessonStatus } from './Lesson.js';
 
 type LessonDTO = components['schemas']['Lesson'];
 

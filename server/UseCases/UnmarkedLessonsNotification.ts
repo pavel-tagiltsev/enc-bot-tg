@@ -1,12 +1,12 @@
 import Time from '../Helpers/Time.js';
-import { Lesson } from '../Domain/Lesson.js';
-import { User } from '../Domain/User.js';
-import { Group } from '../Domain/Group.js';
-import { Student } from '../Domain/Student.js';
-import { ILessonRepository } from '../Repositories/ILessonRepository.js';
-import { IStudentRepository } from '../Repositories/IStudentRepository.js';
-import { IGroupRepository } from '../Repositories/IGroupRepository.js';
-import { IUserRepository } from '../Repositories/IUserRepository.js';
+import { Lesson } from '../Lesson/Lesson.js';
+import { User } from '../User/User.js';
+import { Group } from '../Group/Group.js';
+import { Student } from '../Student/Student.js';
+import { ILessonRepository } from '../Lesson/ILessonRepository.js';
+import { IStudentRepository } from '../Student/IStudentRepository.js';
+import { IGroupRepository } from '../Group/IGroupRepository.js';
+import { IUserRepository } from '../User/IUserRepository.js';
 
 interface UnmarkedLessonsGetData {
   lessons: Lesson[];

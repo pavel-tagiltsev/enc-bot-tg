@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { components } from '../types/moyklass-api.js';
-import { Student } from '../Domain/Student.js';
+import { Student } from './Student.js';
 
 type UserDTO = components['schemas']['User'];
 

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { components } from '../types/moyklass-api.js';
-import { Invoice } from '../Domain/Invoice.js';
+import { Invoice } from './Invoice.js';
 
 type InvoiceDTO = components['schemas']['UserInvoice'];
 

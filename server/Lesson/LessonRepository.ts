@@ -1,4 +1,4 @@
-import { Lesson } from '../Domain/Lesson.js';
+import { Lesson } from './Lesson.js';
 import { ILessonRepository } from './ILessonRepository.js';
 import { IMoyKlassAPI } from '../types/IMoyKlassAPI.js';
 import Time from '../Helpers/Time.js';

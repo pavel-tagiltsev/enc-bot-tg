@@ -1,4 +1,4 @@
-import { User } from '../Domain/User.js';
+import { User } from './User.js';
 import { IUserRepository } from './IUserRepository.js';
 import { IMoyKlassAPI } from '../types/IMoyKlassAPI.js';
 

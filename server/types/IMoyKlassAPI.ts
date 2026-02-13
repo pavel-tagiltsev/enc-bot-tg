@@ -1,9 +1,9 @@
 import { paths } from './moyklass-api.js';
-import { Student } from '../Domain/Student.js';
-import { Invoice } from '../Domain/Invoice.js';
-import { Lesson } from '../Domain/Lesson.js';
-import { Group } from '../Domain/Group.js';
-import { User } from '../Domain/User.js';
+import { Student } from '../Student/Student.js';
+import { Invoice } from '../Invoice/Invoice.js';
+import { Lesson } from '../Lesson/Lesson.js';
+import { Group } from '../Group/Group.js';
+import { User } from '../User/User.js';
 
 type GetInvoicesParams = paths['/v1/company/invoices']['get']['parameters']['query'];
 type GetUsersParams = paths['/v1/company/users']['get']['parameters']['query'];

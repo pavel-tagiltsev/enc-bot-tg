@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { components } from '../types/moyklass-api.js';
-import { Group } from '../Domain/Group.js';
+import { Group } from './Group.js';
 
 type ClassDTO = components['schemas']['Class'];
 

@@ -9,16 +9,16 @@ import {
   MoyKlassRateLimitError,
   MoyKlassNetworkError,
 } from './MoyKlassAPIErrors.js';
-import { Student } from '../Domain/Student.js';
-import { Invoice } from '../Domain/Invoice.js';
-import { Lesson } from '../Domain/Lesson.js';
-import { Group } from '../Domain/Group.js';
-import { User } from '../Domain/User.js';
-import { StudentMapper } from '../Mappers/StudentMapper.js';
-import { InvoiceMapper } from '../Mappers/InvoiceMapper.js';
-import { LessonMapper } from '../Mappers/LessonMapper.js';
-import { GroupMapper } from '../Mappers/GroupMapper.js';
-import { UserMapper } from '../Mappers/UserMapper.js';
+import { Student } from '../Student/Student.js';
+import { Invoice } from '../Invoice/Invoice.js';
+import { Lesson } from '../Lesson/Lesson.js';
+import { Group } from '../Group/Group.js';
+import { User } from '../User/User.js';
+import { StudentMapper } from '../Student/StudentMapper.js';
+import { InvoiceMapper } from '../Invoice/InvoiceMapper.js';
+import { LessonMapper } from '../Lesson/LessonMapper.js';
+import { GroupMapper } from '../Group/GroupMapper.js';
+import { UserMapper } from '../User/UserMapper.js';
 
 // MoyKlass tokens are valid for 1 hour. We'll refresh a bit earlier.
 const TOKEN_LIFETIME_MS = 55 * 60 * 1000; // 55 minutes

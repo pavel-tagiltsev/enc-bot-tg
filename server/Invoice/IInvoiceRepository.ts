@@ -1,4 +1,4 @@
-import { Invoice } from '../Domain/Invoice.js';
+import { Invoice } from './Invoice.js';
 
 export interface IInvoiceRepository {
   findSince(date: Date): Promise<Invoice[]>;

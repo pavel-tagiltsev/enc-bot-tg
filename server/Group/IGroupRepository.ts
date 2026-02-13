@@ -1,4 +1,4 @@
-import { Group } from '../Domain/Group.js';
+import { Group } from './Group.js';
 
 export interface IGroupRepository {
   findByIds(ids: number[]): Promise<Group[]>;

@@ -1,8 +1,8 @@
 import Time from '../Helpers/Time.js';
-import { Invoice } from '../Domain/Invoice.js';
-import { Student } from '../Domain/Student.js';
-import { IInvoiceRepository } from '../Repositories/IInvoiceRepository.js';
-import { IStudentRepository } from '../Repositories/IStudentRepository.js';
+import { Invoice } from '../Invoice/Invoice.js';
+import { Student } from '../Student/Student.js';
+import { IInvoiceRepository } from '../Invoice/IInvoiceRepository.js';
+import { IStudentRepository } from '../Student/IStudentRepository.js';
 
 interface TemplateStudent {
   id: number;

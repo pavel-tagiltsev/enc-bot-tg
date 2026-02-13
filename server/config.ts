@@ -3,11 +3,11 @@ import View from './Helpers/View.js';
 import UnmarkedLessonsNotification from './UseCases/UnmarkedLessonsNotification.js';
 import MoyKlassAPI from './Helpers/MoyKlassAPI.js';
 import { env } from './env.js';
-import { InvoiceRepository } from './Repositories/InvoiceRepository.js';
-import { StudentRepository } from './Repositories/StudentRepository.js';
-import { LessonRepository } from './Repositories/LessonRepository.js';
-import { GroupRepository } from './Repositories/GroupRepository.js';
-import { UserRepository } from './Repositories/UserRepository.js';
+import { InvoiceRepository } from './Invoice/InvoiceRepository.js';
+import { StudentRepository } from './Student/StudentRepository.js';
+import { LessonRepository } from './Lesson/LessonRepository.js';
+import { GroupRepository } from './Group/GroupRepository.js';
+import { UserRepository } from './User/UserRepository.js';
 
 export const moyKlassAPI = new MoyKlassAPI({ apiKey: env.MOY_KLASS_API_KEY });
 const invoiceRepository = new InvoiceRepository(moyKlassAPI);

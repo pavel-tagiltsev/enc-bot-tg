@@ -1,4 +1,4 @@
-import { Student } from '../Domain/Student.js';
+import { Student } from './Student.js';
 
 export interface IStudentRepository {
   findByIds(ids: number[]): Promise<Student[]>;

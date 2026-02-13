@@ -1,4 +1,4 @@
-import { Invoice } from '../Domain/Invoice.js';
+import { Invoice } from './Invoice.js';
 import { IInvoiceRepository } from './IInvoiceRepository.js';
 import { IMoyKlassAPI } from '../types/IMoyKlassAPI.js';
 import Time from '../Helpers/Time.js';

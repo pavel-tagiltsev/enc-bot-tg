@@ -1,4 +1,4 @@
-import { Student } from '../Domain/Student.js';
+import { Student } from './Student.js';
 import { IStudentRepository } from './IStudentRepository.js';
 import { IMoyKlassAPI } from '../types/IMoyKlassAPI.js';
 

@@ -1,4 +1,4 @@
-import { Group } from '../Domain/Group.js';
+import { Group } from './Group.js';
 import { IGroupRepository } from './IGroupRepository.js';
 import { IMoyKlassAPI } from '../types/IMoyKlassAPI.js';
 
