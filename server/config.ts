@@ -3,9 +3,14 @@ import View from './Helpers/View.js';
 import UnmarkedLessonsNotification from './UseCases/UnmarkedLessonsNotification.js';
 import MoyKlassAPI from './Helpers/MoyKlassAPI.js';
 import { env } from './env.js';
+import { InvoiceRepository } from './Repositories/InvoiceRepository.js';
+import { StudentRepository } from './Repositories/StudentRepository.js';
 
 export const moyKlassAPI = new MoyKlassAPI({ apiKey: env.MOY_KLASS_API_KEY });
-const subscriptionDebtNotification = new SubscriptionDebtNotification(moyKlassAPI);
+const invoiceRepository = new InvoiceRepository(moyKlassAPI);
+const studentRepository = new StudentRepository(moyKlassAPI);
+
+const subscriptionDebtNotification = new SubscriptionDebtNotification(invoiceRepository, studentRepository);
 const unmarkedLessonsNotification = new UnmarkedLessonsNotification(moyKlassAPI);
 
 interface Service {

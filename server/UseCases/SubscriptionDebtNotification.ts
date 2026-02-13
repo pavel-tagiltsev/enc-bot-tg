@@ -1,7 +1,8 @@
 import Time from '../Helpers/Time.js';
 import { Invoice } from '../Domain/Invoice.js';
 import { Student } from '../Domain/Student.js';
-import { IMoyKlassAPI } from '../types/IMoyKlassAPI.js';
+import { IInvoiceRepository } from '../Repositories/IInvoiceRepository.js';
+import { IStudentRepository } from '../Repositories/IStudentRepository.js';
 
 interface TemplateStudent {
   id: number;
@@ -19,13 +20,13 @@ export interface TemplateData {
 }
 
 export default class SubscriptionDebtNotification {
-  constructor(private readonly moyKlassAPI: IMoyKlassAPI) {}
+  constructor(
+    private readonly invoiceRepository: IInvoiceRepository,
+    private readonly studentRepository: IStudentRepository
+  ) {}
 
   public execute = async (send: (data: TemplateData) => void): Promise<void> => {
-    const allInvoices = await this.moyKlassAPI.getInvoices({
-      createdAt: ['2025-09-01', Time.formatYMD(new Date())],
-      includeUserSubscriptions: true,
-    });
+    const allInvoices = await this.invoiceRepository.findSince(new Date('2025-09-01'));
 
     const today = new Date(Time.formatYMD(new Date()));
     const overduePaymentInvoices = allInvoices.filter((invoice) => invoice.isDebt && invoice.isOverdue(today));
@@ -38,9 +39,7 @@ export default class SubscriptionDebtNotification {
       return;
     }
 
-    const students = await this.moyKlassAPI.getUsers({
-      userIds: uniqueOverduePaymentStudentIds,
-    });
+    const students = await this.studentRepository.findByIds(uniqueOverduePaymentStudentIds);
 
     const templateData: TemplateData = students.reduce(
       (acc: TemplateData, student: Student) => {

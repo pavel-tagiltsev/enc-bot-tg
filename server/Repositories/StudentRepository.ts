@@ -1,15 +1,15 @@
 import { Student } from '../Domain/Student.js';
 import { IStudentRepository } from './IStudentRepository.js';
+import { IMoyKlassAPI } from '../types/IMoyKlassAPI.js';
 
 export class StudentRepository implements IStudentRepository {
-  async findById(id: number): Promise<Student | null> {
-    console.warn('StudentRepository.findById not implemented.');
-    return null;
-  }
+  constructor(private readonly moyKlassAPI: IMoyKlassAPI) {}
 
-  async findAll(): Promise<Student[]> {
-    console.warn('StudentRepository.findAll not implemented.');
-    return [];
+  async findByIds(ids: number[]): Promise<Student[]> {
+    if (ids.length === 0) {
+      return [];
+    }
+    return await this.moyKlassAPI.getUsers({ userIds: ids });
   }
 
   async save(student: Student): Promise<void> {
