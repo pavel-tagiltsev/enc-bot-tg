@@ -15,9 +15,4 @@ export class LessonRepository implements ILessonRepository {
       sortDirection: 'desc',
     });
   }
-
-  async save(lesson: Lesson): Promise<void> {
-    console.warn('LessonRepository.save not implemented.');
-    // Do nothing for now
-  }
 }

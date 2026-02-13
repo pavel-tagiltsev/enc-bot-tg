@@ -12,9 +12,4 @@ export class InvoiceRepository implements IInvoiceRepository {
       includeUserSubscriptions: true,
     });
   }
-
-  async save(invoice: Invoice): Promise<void> {
-    console.warn('InvoiceRepository.save not implemented.');
-    // Do nothing for now
-  }
 }

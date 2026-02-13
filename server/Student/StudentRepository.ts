@@ -11,9 +11,4 @@ export class StudentRepository implements IStudentRepository {
     }
     return await this.moyKlassAPI.getUsers({ userIds: ids });
   }
-
-  async save(student: Student): Promise<void> {
-    console.warn('StudentRepository.save not implemented.');
-    // Do nothing for now
-  }
 }

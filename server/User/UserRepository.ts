@@ -8,9 +8,4 @@ export class UserRepository implements IUserRepository {
   async findAll(): Promise<User[]> {
     return this.moyKlassAPI.getManagers();
   }
-
-  async save(user: User): Promise<void> {
-    console.warn('UserRepository.save not implemented.');
-    // Do nothing for now
-  }
 }

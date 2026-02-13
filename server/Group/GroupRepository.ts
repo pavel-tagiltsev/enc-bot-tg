@@ -11,9 +11,4 @@ export class GroupRepository implements IGroupRepository {
     }
     return this.moyKlassAPI.getClasses({ classId: ids });
   }
-
-  async save(group: Group): Promise<void> {
-    console.warn('GroupRepository.save not implemented.');
-    // Do nothing for now
-  }
 }
