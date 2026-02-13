@@ -3,7 +3,7 @@ export class Invoice {
     public readonly price: number,
     public readonly payed: number,
     public readonly payUntil: Date,
-    public readonly userId: number
+    public readonly studentId: number
   ) {}
 
   public get isDebt(): boolean {

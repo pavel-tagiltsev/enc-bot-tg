@@ -30,7 +30,7 @@ export default class SubscriptionDebtNotification {
     const today = new Date(Time.formatYMD(new Date()));
     const overduePaymentInvoices = allInvoices.filter((invoice) => invoice.isDebt && invoice.isOverdue(today));
 
-    const overduePaymentStudentIds = overduePaymentInvoices.map((invoice) => invoice.userId);
+    const overduePaymentStudentIds = overduePaymentInvoices.map((invoice) => invoice.studentId);
     const uniqueOverduePaymentStudentIds = [...new Set(overduePaymentStudentIds)];
 
     if (uniqueOverduePaymentStudentIds.length === 0) {
@@ -44,7 +44,7 @@ export default class SubscriptionDebtNotification {
 
     const templateData: TemplateData = students.reduce(
       (acc: TemplateData, student: Student) => {
-        const userInvoices = overduePaymentInvoices.filter((invoice) => invoice.userId === student.id);
+        const userInvoices = overduePaymentInvoices.filter((invoice) => invoice.studentId === student.id);
         const userTotalDebt = Invoice.calculateTotalDebt(userInvoices);
         const userEarliestPayUntilDate = Time.formatYMD(Invoice.findEarliestPayUntil(userInvoices));
 
