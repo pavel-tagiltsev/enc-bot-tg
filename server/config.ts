@@ -5,8 +5,10 @@ import MoyKlassAPI from './Helpers/MoyKlassAPI.js';
 import { env } from './env.js';
 
 export const moyKlassAPI = new MoyKlassAPI({ apiKey: env.MOY_KLASS_API_KEY });
+const subscriptionDebtNotification = new SubscriptionDebtNotification(moyKlassAPI);
+const unmarkedLessonsNotification = new UnmarkedLessonsNotification(moyKlassAPI);
 
-interface StaticExecuteService {
+interface Service {
   execute: (send: (data: any) => void) => Promise<void>;
 }
 
@@ -15,7 +17,7 @@ interface RenderFunction<T> {
 }
 
 export interface ActionConfig {
-  service: StaticExecuteService | { execute: (send: (data: any) => void) => Promise<void> };
+  service: Service;
   render: RenderFunction<any>;
   cronTime: string | null;
   adminOnly: boolean;
@@ -41,7 +43,7 @@ export const actionsConfig: Record<string, ActionConfig> = {
     description: 'Помощь',
   },
   subscriptionDebt: {
-    service: SubscriptionDebtNotification,
+    service: subscriptionDebtNotification,
     render: View.renderSubscriptionDebtNotificationTemplate,
     cronTime: '0 9 * * 1-5',
     adminOnly: true,
@@ -49,7 +51,7 @@ export const actionsConfig: Record<string, ActionConfig> = {
     description: 'Показать все задолженности по ученикам',
   },
   AllUnmarkedLessons: {
-    service: UnmarkedLessonsNotification,
+    service: unmarkedLessonsNotification,
     render: View.renderUnmarkedLessonsNotificationTemplate,
     cronTime: '5 9 * * 1-5',
     adminOnly: true,
@@ -57,7 +59,7 @@ export const actionsConfig: Record<string, ActionConfig> = {
     description: 'Показать неотмеченные уроки по учителям',
   },
   unmarkedLessons: {
-    service: UnmarkedLessonsNotification,
+    service: unmarkedLessonsNotification,
     render: View.renderUnmarkedLessonsNotificationTemplate,
     cronTime: null,
     adminOnly: false,

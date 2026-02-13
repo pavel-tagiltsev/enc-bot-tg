@@ -1,7 +1,7 @@
-import { moyKlassAPI } from '../config.js';
 import Time from '../Helpers/Time.js';
 import { Invoice } from '../Domain/Invoice.js';
 import { Student } from '../Domain/Student.js';
+import { IMoyKlassAPI } from '../types/IMoyKlassAPI.js';
 
 interface TemplateStudent {
   id: number;
@@ -19,8 +19,10 @@ export interface TemplateData {
 }
 
 export default class SubscriptionDebtNotification {
-  static execute = async (send: (data: TemplateData) => void): Promise<void> => {
-    const allInvoices = await moyKlassAPI.getInvoices({
+  constructor(private readonly moyKlassAPI: IMoyKlassAPI) {}
+
+  public execute = async (send: (data: TemplateData) => void): Promise<void> => {
+    const allInvoices = await this.moyKlassAPI.getInvoices({
       createdAt: ['2025-09-01', Time.formatYMD(new Date())],
       includeUserSubscriptions: true,
     });
@@ -36,7 +38,7 @@ export default class SubscriptionDebtNotification {
       return;
     }
 
-    const students = await moyKlassAPI.getUsers({
+    const students = await this.moyKlassAPI.getUsers({
       userIds: uniqueOverduePaymentStudentIds,
     });
 

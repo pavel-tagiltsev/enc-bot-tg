@@ -24,12 +24,14 @@ import { UserMapper } from '../Mappers/UserMapper.js';
 const TOKEN_LIFETIME_MS = 55 * 60 * 1000; // 55 minutes
 const CACHE_LIFETIME_MS = 5 * 60 * 1000; // 5 minutes
 
+import { IMoyKlassAPI } from '../types/IMoyKlassAPI.js';
+
 type GetInvoicesParams = paths['/v1/company/invoices']['get']['parameters']['query'];
 type GetUsersParams = paths['/v1/company/users']['get']['parameters']['query'];
 type GetLessonsParams = paths['/v1/company/lessons']['get']['parameters']['query'];
 type GetClassesParams = paths['/v1/company/classes']['get']['parameters']['query'];
 
-export default class MoyKlassAPI {
+export default class MoyKlassAPI implements IMoyKlassAPI {
   private instance: AxiosInstance;
   private apiKey: string;
   private accessToken: string | null = null;

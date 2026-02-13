@@ -1,9 +1,9 @@
-import { moyKlassAPI } from '../config.js';
 import Time from '../Helpers/Time.js';
 import { Lesson } from '../Domain/Lesson.js';
 import { User } from '../Domain/User.js';
 import { Group } from '../Domain/Group.js';
 import { Student } from '../Domain/Student.js';
+import { IMoyKlassAPI } from '../types/IMoyKlassAPI.js';
 
 interface UnmarkedLessonsGetData {
   lessons: Lesson[];
@@ -37,7 +37,9 @@ export interface TemplateData {
 }
 
 export default class UnmarkedLessonsNotification {
-  static execute = async (send: (data: TemplateData) => void): Promise<void> => {
+  constructor(private readonly moyKlassAPI: IMoyKlassAPI) {}
+
+  public execute = async (send: (data: TemplateData) => void): Promise<void> => {
     const { lessons, users, groups, students }: UnmarkedLessonsGetData = await this.getData();
 
     const templateData: TemplateData = users.reduce(
@@ -54,7 +56,7 @@ export default class UnmarkedLessonsNotification {
             const { date, beginTime, groupId, records } = lesson;
             const group = groups.find(({ id }) => id === groupId);
             if (!group) {
-                throw new Error(`Group with ID ${groupId} not found`);
+              throw new Error(`Group with ID ${groupId} not found`);
             }
             const isIndividual = group.courseId === 0;
 
@@ -83,8 +85,8 @@ export default class UnmarkedLessonsNotification {
     send(templateData);
   };
 
-  static getData = async (): Promise<UnmarkedLessonsGetData> => {
-    const allLessons = await moyKlassAPI.getLessons({
+  private getData = async (): Promise<UnmarkedLessonsGetData> => {
+    const allLessons = await this.moyKlassAPI.getLessons({
       date: ['2025-09-01', Time.formatYMD(new Date())],
       includeRecords: true,
       limit: 500,
@@ -92,20 +94,22 @@ export default class UnmarkedLessonsNotification {
       sortDirection: 'desc',
     });
 
-    const unmarkedLessons = allLessons.filter(lesson => lesson.isUnmarked);
+    const unmarkedLessons = allLessons.filter((lesson) => lesson.isUnmarked);
 
     if (unmarkedLessons.length === 0) {
       return { lessons: [], users: [], groups: [], students: [] };
     }
 
-    const studentIds = [...new Set(unmarkedLessons.flatMap((lesson) => (lesson.records || []).flatMap((record) => record.studentId)))].filter(Boolean) as number[];
+    const studentIds = [
+      ...new Set(unmarkedLessons.flatMap((lesson) => (lesson.records || []).flatMap((record) => record.studentId))),
+    ].filter(Boolean) as number[];
     const groupIds = [...new Set(unmarkedLessons.map((lesson) => lesson.groupId))];
     const teacherIds = [...new Set(unmarkedLessons.flatMap((lesson) => lesson.teacherIds))];
 
     const [students, groups, allManagers] = await Promise.all([
-      studentIds.length > 0 ? moyKlassAPI.getUsers({ userIds: studentIds }) : Promise.resolve([]),
-      groupIds.length > 0 ? moyKlassAPI.getClasses({ classId: groupIds }) : Promise.resolve([]),
-      moyKlassAPI.getManagers(),
+      studentIds.length > 0 ? this.moyKlassAPI.getUsers({ userIds: studentIds }) : Promise.resolve([]),
+      groupIds.length > 0 ? this.moyKlassAPI.getClasses({ classId: groupIds }) : Promise.resolve([]),
+      this.moyKlassAPI.getManagers(),
     ]);
 
     const users = allManagers.filter((manager) => teacherIds.includes(manager.id));
