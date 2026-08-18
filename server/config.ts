@@ -1,12 +1,37 @@
 import SubscriptionDebtNotification from './UseCases/SubscriptionDebtNotification.js';
 import View from './Helpers/View.js';
 import UnmarkedLessonsNotification from './UseCases/UnmarkedLessonsNotification.js';
+import PastScheduledLessonsNotification from './UseCases/PastScheduledLessonsNotification.js';
 import MoyKlassAPI from './Helpers/MoyKlassAPI.js';
 import { env } from './env.js';
+import { InvoiceRepository } from './Invoice/InvoiceRepository.js';
+import { StudentRepository } from './Student/StudentRepository.js';
+import { LessonRepository } from './Lesson/LessonRepository.js';
+import { GroupRepository } from './Group/GroupRepository.js';
+import { UserRepository } from './User/UserRepository.js';
 
 export const moyKlassAPI = new MoyKlassAPI({ apiKey: env.MOY_KLASS_API_KEY });
+const invoiceRepository = new InvoiceRepository(moyKlassAPI);
+const studentRepository = new StudentRepository(moyKlassAPI);
+const lessonRepository = new LessonRepository(moyKlassAPI);
+const groupRepository = new GroupRepository(moyKlassAPI);
+const userRepository = new UserRepository(moyKlassAPI);
 
-interface StaticExecuteService {
+const subscriptionDebtNotification = new SubscriptionDebtNotification(invoiceRepository, studentRepository);
+const unmarkedLessonsNotification = new UnmarkedLessonsNotification(
+  lessonRepository,
+  studentRepository,
+  groupRepository,
+  userRepository
+);
+const pastScheduledLessonsNotification = new PastScheduledLessonsNotification(
+  lessonRepository,
+  studentRepository,
+  groupRepository,
+  userRepository
+);
+
+interface Service {
   execute: (send: (data: any) => void) => Promise<void>;
 }
 
@@ -15,7 +40,7 @@ interface RenderFunction<T> {
 }
 
 export interface ActionConfig {
-  service: StaticExecuteService | { execute: (send: (data: any) => void) => Promise<void> };
+  service: Service;
   render: RenderFunction<any>;
   cronTime: string | null;
   adminOnly: boolean;
@@ -41,7 +66,7 @@ export const actionsConfig: Record<string, ActionConfig> = {
     description: 'Помощь',
   },
   subscriptionDebt: {
-    service: SubscriptionDebtNotification,
+    service: subscriptionDebtNotification,
     render: View.renderSubscriptionDebtNotificationTemplate,
     cronTime: '0 9 * * 1-5',
     adminOnly: true,
@@ -49,7 +74,7 @@ export const actionsConfig: Record<string, ActionConfig> = {
     description: 'Показать все задолженности по ученикам',
   },
   AllUnmarkedLessons: {
-    service: UnmarkedLessonsNotification,
+    service: unmarkedLessonsNotification,
     render: View.renderUnmarkedLessonsNotificationTemplate,
     cronTime: '5 9 * * 1-5',
     adminOnly: true,
@@ -57,11 +82,19 @@ export const actionsConfig: Record<string, ActionConfig> = {
     description: 'Показать неотмеченные уроки по учителям',
   },
   unmarkedLessons: {
-    service: UnmarkedLessonsNotification,
+    service: unmarkedLessonsNotification,
     render: View.renderUnmarkedLessonsNotificationTemplate,
     cronTime: null,
     adminOnly: false,
     command: 'unmarked_lessons',
     description: 'Показать мои неотмеченные уроки',
+  },
+  pastScheduledLessons: {
+    service: pastScheduledLessonsNotification,
+    render: View.renderUnmarkedLessonsNotificationTemplate,
+    cronTime: '10 9 * * 1-5',
+    adminOnly: true,
+    command: 'past_scheduled_lessons',
+    description: 'Показать просроченные запланированные уроки',
   },
 };

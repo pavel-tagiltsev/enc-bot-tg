@@ -8,7 +8,7 @@ import { IStudentRepository } from '../Student/IStudentRepository.js';
 import { IGroupRepository } from '../Group/IGroupRepository.js';
 import { IUserRepository } from '../User/IUserRepository.js';
 
-interface UnmarkedLessonsGetData {
+interface PastScheduledLessonsGetData {
   lessons: Lesson[];
   users: User[];
   groups: Group[];
@@ -40,22 +40,22 @@ export interface TemplateData {
   };
 }
 
-export default class UnmarkedLessonsNotification {
+export default class PastScheduledLessonsNotification {
   constructor(
     private readonly lessonRepository: ILessonRepository,
     private readonly studentRepository: IStudentRepository,
     private readonly groupRepository: IGroupRepository,
-    private readonly userRepository: IUserRepository
+    private readonly userRepository: IUserRepository,
   ) {}
 
   public execute = async (send: (data: TemplateData) => void): Promise<void> => {
-    const { lessons, users, groups, students }: UnmarkedLessonsGetData = await this.getData();
+    const { lessons, users, groups, students }: PastScheduledLessonsGetData = await this.getData();
 
     const templateData: TemplateData = users.reduce(
       (acc: TemplateData, user: User) => {
         const { teachers, stats } = acc;
         const { id, name } = user;
-        const teacherLessons = lessons.filter((lesson) => lesson.teacherIds.includes(id));
+        const teacherLessons = lessons.filter(lesson => lesson.teacherIds.includes(id));
 
         teachers.push({
           id: id,
@@ -70,7 +70,7 @@ export default class UnmarkedLessonsNotification {
             const isIndividual = group.courseId === 0;
 
             const studentId = isIndividual && records[0] ? records[0].studentId : null;
-            const student = studentId ? students.find((s) => s.id === studentId) : null;
+            const student = studentId ? students.find(s => s.id === studentId) : null;
 
             return {
               date: Time.formatYMD(date),
@@ -88,26 +88,26 @@ export default class UnmarkedLessonsNotification {
 
         return acc;
       },
-      { title: 'Отчет по неотмеченным урокам', teachers: [], stats: { totalTeachers: 0, totalLessons: 0 } }
+      { title: 'Отчет по непроведенным урокам', teachers: [], stats: { totalTeachers: 0, totalLessons: 0 } },
     );
 
     send(templateData);
   };
 
-  private getData = async (): Promise<UnmarkedLessonsGetData> => {
+  private getData = async (): Promise<PastScheduledLessonsGetData> => {
     const allLessons = await this.lessonRepository.findBetween(new Date('2025-09-01'), new Date());
 
-    const unmarkedLessons = allLessons.filter((lesson) => lesson.isUnmarked);
+    const pastScheduledLessons = allLessons.filter(lesson => lesson.isPastScheduled(new Date()));
 
-    if (unmarkedLessons.length === 0) {
+    if (pastScheduledLessons.length === 0) {
       return { lessons: [], users: [], groups: [], students: [] };
     }
 
     const studentIds = [
-      ...new Set(unmarkedLessons.flatMap((lesson) => (lesson.records || []).flatMap((record) => record.studentId))),
+      ...new Set(pastScheduledLessons.flatMap(lesson => (lesson.records || []).flatMap(record => record.studentId))),
     ].filter(Boolean) as number[];
-    const groupIds = [...new Set(unmarkedLessons.map((lesson) => lesson.groupId))];
-    const teacherIds = [...new Set(unmarkedLessons.flatMap((lesson) => lesson.teacherIds))];
+    const groupIds = [...new Set(pastScheduledLessons.map(lesson => lesson.groupId))];
+    const teacherIds = [...new Set(pastScheduledLessons.flatMap(lesson => lesson.teacherIds))];
 
     const [students, groups, allManagers] = await Promise.all([
       this.studentRepository.findByIds(studentIds),
@@ -115,8 +115,8 @@ export default class UnmarkedLessonsNotification {
       this.userRepository.findAll(),
     ]);
 
-    const users = allManagers.filter((manager) => teacherIds.includes(manager.id));
+    const users = allManagers.filter(manager => teacherIds.includes(manager.id));
 
-    return { lessons: unmarkedLessons, users, groups, students };
+    return { lessons: pastScheduledLessons, users, groups, students };
   };
 }

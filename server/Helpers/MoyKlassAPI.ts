@@ -9,27 +9,29 @@ import {
   MoyKlassRateLimitError,
   MoyKlassNetworkError,
 } from './MoyKlassAPIErrors.js';
-import { User } from '../Domain/User.js';
-import { Invoice } from '../Domain/Invoice.js';
-import { Lesson } from '../Domain/Lesson.js';
-import { Class } from '../Domain/Class.js';
-import { Manager } from '../Domain/Manager.js';
-import { UserMapper } from '../Mappers/UserMapper.js';
-import { InvoiceMapper } from '../Mappers/InvoiceMapper.js';
-import { LessonMapper } from '../Mappers/LessonMapper.js';
-import { ClassMapper } from '../Mappers/ClassMapper.js';
-import { ManagerMapper } from '../Mappers/ManagerMapper.js';
+import { Student } from '../Student/Student.js';
+import { Invoice } from '../Invoice/Invoice.js';
+import { Lesson } from '../Lesson/Lesson.js';
+import { Group } from '../Group/Group.js';
+import { User } from '../User/User.js';
+import { StudentMapper } from '../Student/StudentMapper.js';
+import { InvoiceMapper } from '../Invoice/InvoiceMapper.js';
+import { LessonMapper } from '../Lesson/LessonMapper.js';
+import { GroupMapper } from '../Group/GroupMapper.js';
+import { UserMapper } from '../User/UserMapper.js';
 
 // MoyKlass tokens are valid for 1 hour. We'll refresh a bit earlier.
 const TOKEN_LIFETIME_MS = 55 * 60 * 1000; // 55 minutes
 const CACHE_LIFETIME_MS = 5 * 60 * 1000; // 5 minutes
+
+import { IMoyKlassAPI } from '../types/IMoyKlassAPI.js';
 
 type GetInvoicesParams = paths['/v1/company/invoices']['get']['parameters']['query'];
 type GetUsersParams = paths['/v1/company/users']['get']['parameters']['query'];
 type GetLessonsParams = paths['/v1/company/lessons']['get']['parameters']['query'];
 type GetClassesParams = paths['/v1/company/classes']['get']['parameters']['query'];
 
-export default class MoyKlassAPI {
+export default class MoyKlassAPI implements IMoyKlassAPI {
   private instance: AxiosInstance;
   private apiKey: string;
   private accessToken: string | null = null;
@@ -129,9 +131,9 @@ export default class MoyKlassAPI {
     return (response.invoices || []).map((dto) => InvoiceMapper.toDomain(dto));
   }
 
-  public async getUsers(params: GetUsersParams): Promise<User[]> {
+  public async getUsers(params: GetUsersParams): Promise<Student[]> {
     const response = await this.get<components['schemas']['Users']>('/users', { params });
-    return (response.users || []).map((dto) => UserMapper.toDomain(dto));
+    return (response.users || []).map((dto) => StudentMapper.toDomain(dto));
   }
 
   public async getLessons(params: GetLessonsParams): Promise<Lesson[]> {
@@ -139,13 +141,13 @@ export default class MoyKlassAPI {
     return (response.lessons || []).map((dto) => LessonMapper.toDomain(dto));
   }
 
-  public async getClasses(params: GetClassesParams): Promise<Class[]> {
+  public async getClasses(params: GetClassesParams): Promise<Group[]> {
     const response = await this.get<components['schemas']['Class'][]>('/classes', { params });
-    return (response || []).map((dto) => ClassMapper.toDomain(dto));
+    return (response || []).map((dto) => GroupMapper.toDomain(dto));
   }
 
-  public async getManagers(): Promise<Manager[]> {
+  public async getManagers(): Promise<User[]> {
     const response = await this.get<components['schemas']['Manager'][]>('/managers');
-    return (response || []).map((dto) => ManagerMapper.toDomain(dto));
+    return (response || []).map((dto) => UserMapper.toDomain(dto));
   }
 }

@@ -1,6 +1,6 @@
 import Time from './Time.js';
 
-interface User {
+interface Student {
   earliestPayUntil: string;
   id: number;
   name: string;
@@ -8,9 +8,9 @@ interface User {
 }
 
 interface SubscriptionDebtData {
-  users: User[];
+  students: Student[];
   stats: {
-    totalUsers: number;
+    totalStudents: number;
     totalDebt: number;
   };
 }
@@ -18,10 +18,10 @@ interface SubscriptionDebtData {
 interface Lesson {
   date: string;
   beginTime: string;
-  classId: number;
-  className: string;
-  userId?: number;
-  userName?: string;
+  groupId: number;
+  groupName: string;
+  studentId?: number;
+  studentName?: string;
 }
 
 interface Teacher {
@@ -30,6 +30,7 @@ interface Teacher {
 }
 
 interface UnmarkedLessonsData {
+  title: string;
   teachers: Teacher[];
   stats: {
     totalTeachers: number;
@@ -56,32 +57,32 @@ export default class View {
   }
 
   static renderSubscriptionDebtNotificationTemplate(data: SubscriptionDebtData): string {
-    const usersByEarliestPayUntilDesc = data.users.sort((a, b) => {
+    const studentsByEarliestPayUntilDesc = data.students.sort((a, b) => {
       return new Date(a.earliestPayUntil).getTime() - new Date(b.earliestPayUntil).getTime();
     });
 
     return View.htmlTemplate`
       <b>Отчет по задолженностям</b>
       ${View.#HTMLEntities.NEW_LINE}
-      <b>Всего учеников: ${data.stats.totalUsers}</b>
+      <b>Всего учеников: ${data.stats.totalStudents}</b>
       ${View.#HTMLEntities.NEW_LINE}
       <b>Общая сумма: ${data.stats.totalDebt}</b>
       ${View.#HTMLEntities.NEW_LINE}
-      ${usersByEarliestPayUntilDesc
-        .map((user) => {
-          const fullDaysDiffConst = Time.fullDaysDiff(user.earliestPayUntil);
+      ${studentsByEarliestPayUntilDesc
+        .map((student) => {
+          const fullDaysDiffConst = Time.fullDaysDiff(student.earliestPayUntil);
           const emoji =
             Math.abs(fullDaysDiffConst) > 14 ? '🔥' : Math.abs(fullDaysDiffConst) > 7 ? '⚠️' : '💰';
-          const link = `https://app.moyklass.com/user/${user.id}/payments?view=invoices`;
+          const link = `https://app.moyklass.com/user/${student.id}/payments?view=invoices`;
 
-          return `${emoji}<a href="${link}">${user.name}</a> с ${user.earliestPayUntil} на сумму ${user.totalDebt}`;
+          return `${emoji}<a href="${link}">${student.name}</a> с ${student.earliestPayUntil} на сумму ${student.totalDebt}`;
         })
         .join(View.#HTMLEntities.NEW_LINE)}
     `;
   }
 
   static renderUnmarkedLessonsNotificationTemplate(data: UnmarkedLessonsData): string {
-    const { teachers, stats } = data;
+    const { title, teachers, stats } = data;
     const teachersByNameDesc = teachers.sort((a, b) => {
       if (a.name < b.name) return -1;
       if (a.name > b.name) return 1;
@@ -89,7 +90,7 @@ export default class View {
     });
 
     return View.htmlTemplate`
-      <b>Отчет по неотмеченным урокам</b>
+      <b>${title}</b>
       ${View.#HTMLEntities.NEW_LINE}
       <b>Всего учителей: ${stats.totalTeachers}</b>
       ${View.#HTMLEntities.NEW_LINE}
@@ -102,16 +103,16 @@ export default class View {
           const isLastTeacher = stats.totalTeachers === index + 1;
 
           const lessonsList = lessons.map((lesson, i) => {
-            const { date, beginTime, classId, className, userId, userName } = lesson;
+            const { date, beginTime, groupId, groupName, studentId, studentName } = lesson;
             const diff = Math.abs(Time.fullDaysDiff(date));
-            const link = userId
-              ? `https://app.moyklass.com/user/${userId}/lessons`
-              : `https://app.moyklass.com/class/${classId}/lessons`;
+            const link = studentId
+              ? `https://app.moyklass.com/user/${studentId}/lessons`
+              : `https://app.moyklass.com/class/${groupId}/lessons`;
             const limitation = diff ? `${diff} ${View.pluralize('days', diff)}` : 'сегодня';
 
             return `
             ${i + 1}. Просрочка: ${limitation}
-            ${userName ? 'Ученик' : 'Группа'}: <a href="${link}">${userName ? userName : className}</a>
+            ${studentName ? 'Ученик' : 'Группа'}: <a href="${link}">${studentName ? studentName : groupName}</a>
             Время: ${new Date(date).toLocaleDateString('ru-RU')}, ${beginTime}
             ${View.#HTMLEntities.NEW_LINE}
           `;
