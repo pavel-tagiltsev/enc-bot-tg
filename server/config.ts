@@ -1,6 +1,7 @@
 import SubscriptionDebtNotification from './UseCases/SubscriptionDebtNotification.js';
 import View from './Helpers/View.js';
 import UnmarkedLessonsNotification from './UseCases/UnmarkedLessonsNotification.js';
+import PastScheduledLessonsNotification from './UseCases/PastScheduledLessonsNotification.js';
 import MoyKlassAPI from './Helpers/MoyKlassAPI.js';
 import { env } from './env.js';
 import { InvoiceRepository } from './Invoice/InvoiceRepository.js';
@@ -18,6 +19,12 @@ const userRepository = new UserRepository(moyKlassAPI);
 
 const subscriptionDebtNotification = new SubscriptionDebtNotification(invoiceRepository, studentRepository);
 const unmarkedLessonsNotification = new UnmarkedLessonsNotification(
+  lessonRepository,
+  studentRepository,
+  groupRepository,
+  userRepository
+);
+const pastScheduledLessonsNotification = new PastScheduledLessonsNotification(
   lessonRepository,
   studentRepository,
   groupRepository,
@@ -81,5 +88,13 @@ export const actionsConfig: Record<string, ActionConfig> = {
     adminOnly: false,
     command: 'unmarked_lessons',
     description: 'Показать мои неотмеченные уроки',
+  },
+  pastScheduledLessons: {
+    service: pastScheduledLessonsNotification,
+    render: View.renderUnmarkedLessonsNotificationTemplate,
+    cronTime: '10 9 * * 1-5',
+    adminOnly: true,
+    command: 'past_scheduled_lessons',
+    description: 'Показать просроченные запланированные уроки',
   },
 };

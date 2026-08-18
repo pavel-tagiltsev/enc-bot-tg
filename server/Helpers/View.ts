@@ -30,6 +30,7 @@ interface Teacher {
 }
 
 interface UnmarkedLessonsData {
+  title: string;
   teachers: Teacher[];
   stats: {
     totalTeachers: number;
@@ -81,7 +82,7 @@ export default class View {
   }
 
   static renderUnmarkedLessonsNotificationTemplate(data: UnmarkedLessonsData): string {
-    const { teachers, stats } = data;
+    const { title, teachers, stats } = data;
     const teachersByNameDesc = teachers.sort((a, b) => {
       if (a.name < b.name) return -1;
       if (a.name > b.name) return 1;
@@ -89,7 +90,7 @@ export default class View {
     });
 
     return View.htmlTemplate`
-      <b>Отчет по неотмеченным урокам</b>
+      <b>${title}</b>
       ${View.#HTMLEntities.NEW_LINE}
       <b>Всего учителей: ${stats.totalTeachers}</b>
       ${View.#HTMLEntities.NEW_LINE}

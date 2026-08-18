@@ -636,6 +636,88 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/company/users/{userId}/SSOToken": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Получение SSO-токена для ученика
+         * @description Создает JWT-токен для SSO-авторизации ученика в личном кабинете. Токен действителен 5 минут. Полученный токен нужно передать в GET /v1/user/auth/SSOLogin?token=... для авторизации и редиректа ученика.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /**
+                     * @description ID ученика
+                     * @example 123456
+                     */
+                    userId: number;
+                };
+                cookie?: never;
+            };
+            /** @description Параметры SSO */
+            requestBody?: {
+                content: {
+                    "application/json": {
+                        /**
+                         * @description Относительный путь, на который будет перенаправлен ученик после авторизации. Не должен начинаться с http:// или https://.
+                         * @example calendar
+                         */
+                        redirectTo?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description SSO-токен успешно создан */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @description JWT-токен для SSO-авторизации */
+                            ssoToken?: string;
+                            /**
+                             * @description Ссылка для редиректа после получения токена
+                             * @example <домен лк>/api/v1/user/auth/SSOLogin?token=...
+                             */
+                            redirectUrl?: string;
+                        };
+                    };
+                };
+                /** @description Ошибка валидации */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorHandling"];
+                    };
+                };
+                /** @description Ученик не найден */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorHandling"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/company/payments": {
         parameters: {
             query?: never;
@@ -1796,6 +1878,8 @@ export interface paths {
                     classId?: components["parameters"]["classId"];
                     /** @description Включить в ответ общую информацию по долгу и доходу */
                     includeStats?: components["parameters"]["includeStats"];
+                    /** @description Включить в ответ информацию о загруженности группы */
+                    includeJoinsStats?: components["parameters"]["includeJoinsStats"];
                 };
                 header?: never;
                 path?: never;
@@ -1882,6 +1966,8 @@ export interface paths {
                     includeAttributes?: components["parameters"]["includeAttributes"];
                     /** @description Включить в ответ общую информацию по долгу и доходу */
                     includeStats?: components["parameters"]["includeStats"];
+                    /** @description Включить в ответ информацию о загруженности группы */
+                    includeJoinsStats?: components["parameters"]["includeJoinsStats"];
                     /** @description Включить в ответ описание */
                     includeDescription?: components["parameters"]["includeDescription"];
                 };
@@ -2020,6 +2106,72 @@ export interface paths {
                 };
             };
         };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/company/classes/{classId}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Изменение статуса группы
+         * @description Изменяет статус группы (0 — Группа в архиве, 1 — Набор открыт, 2 — Набор закрыт)
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /**
+                     * @description ID группы
+                     * @example 123456
+                     */
+                    classId: number;
+                };
+                cookie?: never;
+            };
+            /** @description Новый статус группы */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ClassStatusRequest"];
+                };
+            };
+            responses: {
+                /** @description Статус изменен */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Ошибка валидации */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorHandling"];
+                    };
+                };
+                /** @description Группа не найдена */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorHandling"];
+                    };
+                };
+            };
+        };
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -3444,19 +3596,19 @@ export interface paths {
                          */
                         endTime: string;
                         /**
-                         * Format: int64
+                         * Format: int32
                          * @description ID филиала компании
                          * @example 10
                          */
                         filialId: number;
                         /**
-                         * Format: int64
+                         * Format: int32
                          * @description ID аудитории/зала
                          * @example 505
                          */
                         roomId: number;
                         /**
-                         * Format: int64
+                         * Format: int32
                          * @description Максимально допустимое количество учеников на занятии.
                          *
                          *       * `0` – не ограничено
@@ -3465,7 +3617,7 @@ export interface paths {
                          */
                         maxStudents?: number | null;
                         /**
-                         * Format: int64
+                         * Format: int32
                          * @description ID группы
                          * @example 171331
                          */
@@ -3499,7 +3651,7 @@ export interface paths {
                             lessonSettings?: components["schemas"]["LessonSettings"];
                         };
                         /**
-                         * Format: int64
+                         * Format: int32
                          * @description ID ученика. Только для индивидуальных занятий.
                          */
                         userId?: number;
@@ -3519,7 +3671,7 @@ export interface paths {
                             /** @description Id записи на пропущенное занятие (для создания отработки). В случае использования, параметры free и test берутся у пропущенного занятия. */
                             missedLessonRecordId?: number;
                         };
-                        /** @description ID преподавателей. Обязательно для индивидуальных занятий. */
+                        /** @description ID преподавателей. Обязательно для индивидуальных занятий  или если в группе включен параметр `requireTeachersInLessons` */
                         teacherIds?: number[];
                     };
                 };
@@ -3732,7 +3884,7 @@ export interface paths {
                             /** @description Id записи на пропущенное занятие (для создания отработки). В случае использования, параметры free и test берутся у пропущенного занятия. */
                             missedLessonRecordId?: number;
                         };
-                        /** @description ID преподавателей */
+                        /** @description ID преподавателей. Обязательное поле, если в группе включен параметр `requireTeachersInLessons`  и до этого преподаватели не были указаны */
                         teacherIds?: number[];
                     };
                 };
@@ -4348,7 +4500,7 @@ export interface paths {
         put?: never;
         /**
          * Создание абонемента ученика
-         * @description Создает новый абонемент ученика
+         * @description Создает новый абонемент ученика. При создании плавающего абонемента стоит учитывать настройки праздников и рабочих дней, абонемент не будет создан, если общее количество посещений с этими настройками окажется нулевым
          */
         post: {
             parameters: {
@@ -4845,6 +4997,8 @@ export interface paths {
                     includeLessons?: boolean;
                     /** @description Включить в ответ данные о списании */
                     includeBills?: components["parameters"]["includeBills"];
+                    /** @description Показать только оплаченные/неоплаченные записи на занятия */
+                    hasBills?: components["parameters"]["hasBills"];
                     /** @description Включить в ответ к записи на занятие информацию об отработке (для пропуска) / пропущенном занятии (для отработки) */
                     includeWorkOffs?: components["parameters"]["includeWorkOffs"];
                     /**
@@ -4954,6 +5108,8 @@ export interface paths {
                 query?: {
                     /** @description Включить информацию о занятии */
                     includeLesson?: boolean;
+                    /** @description Включить абонемент ученика */
+                    includeUserSubscriptions?: boolean;
                 };
                 header?: never;
                 path: {
@@ -6125,8 +6281,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Скачивание файла
-         * @description Скачивание файла
+         * Получение файла
+         * @description Получение файла
          */
         get: {
             parameters: {
@@ -6146,7 +6302,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["DownloadFile"];
+                        "application/json": components["schemas"]["File"];
                     };
                 };
                 /** @description Ошибка валидации */
@@ -6928,6 +7084,68 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/company/documents/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Генерация документа по шаблону
+         * @description Генерирует документ (PDF или DOCX) по шаблону с подставленными данными ученика
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description Параметры генерации документа */
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["DocumentGenerateRequest"];
+                };
+            };
+            responses: {
+                /** @description Сгенерированный файл в формате base64 */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DocumentGenerateResponse"];
+                    };
+                };
+                /** @description Ошибка рендера шаблона */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorHandling"];
+                    };
+                };
+                /** @description Шаблон, ученик или договор не найдены */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorHandling"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/company/userTags": {
         parameters: {
             query?: never;
@@ -7648,6 +7866,73 @@ export interface paths {
                 };
             };
         };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/user/auth/SSOLogin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * SSO-авторизация ученика
+         * @description Авторизует ученика по SSO-токену, полученному через POST /v1/company/users/{userId}/SSOToken
+         */
+        get: {
+            parameters: {
+                query: {
+                    /** @description SSO JWT-токен */
+                    token: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Успешная авторизация, редирект на указанный адрес */
+                302: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Токен не передан */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorHandling"];
+                    };
+                };
+                /** @description Ошибка авторизации (невалидный или истекший токен, пользователь не найден) */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorHandling"];
+                    };
+                };
+                /** @description Личный кабинет для компании не найден */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorHandling"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -9031,6 +9316,85 @@ export interface paths {
                     };
                     content: {
                         "application/json": components["schemas"]["LicenseRestricts"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/user/lessonRecords/intersection": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Проверка пересечений записей
+         * @description Проверяет пересечения во времени для ученика
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description Информация для проверки */
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: int64
+                         * @description ID ученика
+                         */
+                        userId: number;
+                        /** @description Список ID занятий (для групповых) */
+                        lessonIds?: number[];
+                        /** @description Данные для индивидуального занятия */
+                        individualData?: {
+                            /** Format: int64 */
+                            classId?: number;
+                            /** Format: date */
+                            date?: string;
+                            /** @example 10:00 */
+                            beginTime?: string;
+                            /** @example 11:00 */
+                            endTime?: string;
+                        };
+                    };
+                };
+            };
+            responses: {
+                /** @description Список пересечений */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: date */
+                            date?: string;
+                            beginTime?: string;
+                            endTime?: string;
+                            roomName?: string | null;
+                            className?: string;
+                        }[];
+                    };
+                };
+                /** @description Ошибка валидации */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorHandling"];
                     };
                 };
             };
@@ -12246,8 +12610,18 @@ export interface components {
              * @example 79001234567
              */
             phone?: string | null;
-            updatedAt?: components["schemas"]["Join"]["updatedAt"];
-            createdAt?: components["schemas"]["Rate"]["createdAt"];
+            /**
+             * Format: date-time
+             * @description Дата изменения
+             * @example 2019-06-12T13:00:12.000Z
+             */
+            readonly updatedAt?: string;
+            /**
+             * Format: date-time
+             * @description Дата создания
+             * @example 2019-06-12T13:00:12.000Z
+             */
+            readonly createdAt?: string;
             /**
              * Format: double
              * @description Баланс ученика с вычетом долгов (availableBalance минус долги по счетам, может быть отрицательным)
@@ -12279,7 +12653,17 @@ export interface components {
              * @example 23456
              */
             advSourceId?: number | null;
-            createSourceId?: components["schemas"]["Join"]["createSourceId"];
+            /**
+             * @description Значение Roistat. Для автоматической установки оставьте поле пустым и передайте advSourceId — значение возьмётся из источника. Ручная передача значения учитывается только если в настройках интеграции Roistat включена опция «Возможность вручную указывать номер визита» иначе присланное значение игнорируется и берётся из источника. Разрешённое ручное значение проверяется по рабочей интеграции Roistat, если интеграции нет, сохраняется как есть. Значения, проставленные виджетом, изменить нельзя
+             * @example R112
+             */
+            roistat?: string;
+            /**
+             * Format: int32
+             * @description ID способа заведения (как заведена карточка)
+             * @example 56
+             */
+            createSourceId?: number | null;
             /**
              * Format: date-time
              * @description Дата изменения статуса
@@ -12354,8 +12738,8 @@ export interface components {
              * @example 79001234567
              */
             phone?: string | null;
-            updatedAt?: components["schemas"]["Join"]["updatedAt"];
-            createdAt?: components["schemas"]["Rate"]["createdAt"];
+            updatedAt?: components["schemas"]["User"]["updatedAt"];
+            createdAt?: components["schemas"]["User"]["createdAt"];
             /**
              * Format: double
              * @description Баланс ученика с вычетом долгов (availableBalance минус долги по счетам, может быть отрицательным)
@@ -12375,7 +12759,12 @@ export interface components {
              */
             readonly availableBalance?: number;
             advSourceId?: components["schemas"]["User"]["advSourceId"];
-            createSourceId?: unknown & components["schemas"]["Join"]["createSourceId"];
+            /**
+             * @description Значение Roistat. Для автоматической установки оставьте поле пустым и передайте advSourceId — значение возьмётся из источника. Ручная передача значения учитывается только если в настройках интеграции Roistat включена опция «Возможность вручную указывать номер визита» иначе присланное значение игнорируется и берётся из источника. Разрешённое ручное значение проверяется по рабочей интеграции Roistat, если интеграции нет, сохраняется как есть. Значения, проставленные виджетом, изменить нельзя
+             * @example R112
+             */
+            roistat?: string;
+            createSourceId?: unknown & components["schemas"]["User"]["createSourceId"];
             stateChangedAt?: components["schemas"]["User"]["stateChangedAt"];
             statusChangeReasonId?: components["schemas"]["User"]["statusChangeReasonId"] & unknown;
             clientStateId?: components["schemas"]["User"]["clientStateId"];
@@ -12432,6 +12821,44 @@ export interface components {
              * @example 125
              */
             readonly vkAdsBannerId?: number;
+            /** @description Информация о привязках к тг */
+            telegramAccounts?: {
+                /**
+                 * @description Номер телефона в телеграмме
+                 * @example 79001234567
+                 */
+                phone?: string | null;
+                /**
+                 * @description Имя пользователя в телеграмме, без "@"
+                 * @example userName
+                 */
+                username?: string;
+                /**
+                 * Format: int32
+                 * @description ID чата в телеграмме, к которому привязан ученик
+                 */
+                chatId?: number;
+            }[];
+            /** @description Информация о привязках к WZ */
+            wazzupAssigns?: {
+                /**
+                 * Format: int32
+                 * @description ID чата в WZ, к которому привязан ученик
+                 */
+                chatId?: number;
+                /** @description ID канала в WZ */
+                channelId?: string;
+                /**
+                 * @description Тип канала в WZ
+                 * @example max
+                 */
+                chatType?: string;
+                /**
+                 * Format: int32
+                 * @description ID интеграции
+                 */
+                integrationId?: number;
+            }[];
         };
         /** @description UTM-метки */
         utms: {
@@ -12966,6 +13393,11 @@ export interface components {
             responsibles?: number[];
             /** @description Записи ученика */
             readonly joins?: components["schemas"]["UserJoin"][];
+            /**
+             * @description Язык ученика
+             * @enum {string}
+             */
+            lang?: "ru" | "en";
             /** @description Дополнительные признаки ученика */
             attributes?: ({
                 /**
@@ -13116,7 +13548,7 @@ export interface components {
              * @example 10
              */
             readonly stateOrder?: number;
-            createdAt?: components["schemas"]["Rate"]["createdAt"];
+            createdAt?: components["schemas"]["User"]["createdAt"];
         };
         /** @description Статус клиента */
         ClientStatus: {
@@ -13137,7 +13569,7 @@ export interface components {
              * @example 10
              */
             readonly stateOrder?: number;
-            createdAt?: components["schemas"]["Rate"]["createdAt"];
+            createdAt?: components["schemas"]["User"]["createdAt"];
             /**
              * @description Код системного статуса
              * @example reject
@@ -13230,6 +13662,11 @@ export interface components {
              * @example Соцсети
              */
             name: string;
+            /**
+             * @description Значение Roistat
+             * @example R123
+             */
+            roistat?: string;
         };
         /** @description Способ заведения заявки */
         CreateSource: {
@@ -13263,12 +13700,7 @@ export interface components {
              * @example Ставка ЗП
              */
             name: string;
-            /**
-             * Format: date-time
-             * @description Дата создания
-             * @example 2019-06-12T13:00:12.000Z
-             */
-            readonly createdAt: string;
+            createdAt: components["schemas"]["User"]["createdAt"];
         };
         /** @description Роль сотрудника */
         Role: {
@@ -13291,7 +13723,7 @@ export interface components {
              *     ]
              */
             permissions?: string[];
-            createdAt: components["schemas"]["Rate"]["createdAt"];
+            createdAt: components["schemas"]["User"]["createdAt"];
         };
         /** Сотрудник компании */
         ManagerEdit: {
@@ -13523,8 +13955,8 @@ export interface components {
              */
             multi?: boolean;
             params?: components["schemas"]["SubscriptionParams"];
-            createdAt?: components["schemas"]["Rate"]["createdAt"];
-            updatedAt?: components["schemas"]["Join"]["updatedAt"];
+            createdAt?: components["schemas"]["User"]["createdAt"];
+            updatedAt?: components["schemas"]["User"]["updatedAt"];
         } | {
             /**
              * @description Название
@@ -13603,8 +14035,8 @@ export interface components {
              */
             multi?: boolean;
             params?: components["schemas"]["SubscriptionParams"];
-            createdAt?: components["schemas"]["Rate"]["createdAt"];
-            updatedAt?: components["schemas"]["Join"]["updatedAt"];
+            createdAt?: components["schemas"]["User"]["createdAt"];
+            updatedAt?: components["schemas"]["User"]["updatedAt"];
         } | ({
             /**
              * @description Название
@@ -13683,7 +14115,7 @@ export interface components {
             params?: components["schemas"]["SubscriptionParams"] & {
                 dynamicParams: {
                     /**
-                     * @description Динамическая цена
+                     * @description Динамическая цена. Для изменения типа абонемента на динамический, необходимо указать true
                      * @default false
                      */
                     dynamicPrice: boolean;
@@ -13703,8 +14135,8 @@ export interface components {
                     ignoreHolidays?: boolean;
                 };
             };
-            createdAt?: components["schemas"]["Rate"]["createdAt"];
-            updatedAt?: components["schemas"]["Join"]["updatedAt"];
+            createdAt?: components["schemas"]["User"]["createdAt"];
+            updatedAt?: components["schemas"]["User"]["updatedAt"];
         } & ({
             /**
              * Format: double
@@ -13814,8 +14246,8 @@ export interface components {
              */
             multi: boolean;
             params?: components["schemas"]["SubscriptionParams"];
-            createdAt?: components["schemas"]["Rate"]["createdAt"];
-            updatedAt?: components["schemas"]["Join"]["updatedAt"];
+            createdAt?: components["schemas"]["User"]["createdAt"];
+            updatedAt?: components["schemas"]["User"]["updatedAt"];
         } | {
             /**
              * @description Название
@@ -13899,8 +14331,8 @@ export interface components {
              */
             multi: boolean;
             params?: components["schemas"]["SubscriptionParams"];
-            createdAt?: components["schemas"]["Rate"]["createdAt"];
-            updatedAt?: components["schemas"]["Join"]["updatedAt"];
+            createdAt?: components["schemas"]["User"]["createdAt"];
+            updatedAt?: components["schemas"]["User"]["updatedAt"];
         } | ({
             /**
              * @description Название
@@ -13987,7 +14419,7 @@ export interface components {
             params?: components["schemas"]["SubscriptionParams"] & {
                 dynamicParams: {
                     /**
-                     * @description Динамическая цена
+                     * @description Динамическая цена. Для изменения типа абонемента на динамический, необходимо указать true
                      * @default false
                      */
                     dynamicPrice: boolean;
@@ -14008,8 +14440,8 @@ export interface components {
                     ignoreHolidays: boolean;
                 };
             };
-            createdAt?: components["schemas"]["Rate"]["createdAt"];
-            updatedAt?: components["schemas"]["Join"]["updatedAt"];
+            createdAt?: components["schemas"]["User"]["createdAt"];
+            updatedAt?: components["schemas"]["User"]["updatedAt"];
         } & ({
             /**
              * Format: double
@@ -14048,6 +14480,28 @@ export interface components {
                  */
                 useDiscount: boolean;
                 /**
+                 * @description Не продлевать при наличии другого аб-та
+                 * @default false
+                 */
+                doNotRenewIfOtherExists: boolean;
+                /**
+                 * @description Статус другого абонемента. Заполняется при `doNotRenewIfOtherExists` = `true`
+                 *     * `active` - Активный.
+                 *     * `frozen` - Заморожен.
+                 *     * `inactive` - Неактивный.
+                 * @default active
+                 * @enum {string}
+                 */
+                otherSubStatus: "active" | "frozen" | "inactive";
+                /**
+                 * @description Группа другого абонемента. Заполняется при `doNotRenewIfOtherExists` = `true`
+                 *     * `any` - Любая.
+                 *     * `same` - Совпадает с текущей.
+                 * @default any
+                 * @enum {string}
+                 */
+                otherSubGroup: "any" | "same";
+                /**
                  * @description День создания.
                  *
                  *       * `nextDayCurrentEnds` - На след. день после окончания текущего аб-та.
@@ -14070,6 +14524,8 @@ export interface components {
                  *       * `thisMonth` - С начала текущего месяца.
                  *
                  *       * `nextMonth` - С начала следующего месяца.
+                 *
+                 *       * `fromFirstPaidVisit` - С даты первого платного посещения/пропуска после продажи. (Выставляется автоматически, если у создаваемого или следующего абонемента `onlinePayment.beginDateSelectDefault` = `fromFirstPaidVisit`)
                  *
                  *     Авто: для бессрочных аб-в - текущая дата; для срочных аб-в - если дата завершения текущего аб-та до 15-го числа, то с 1-го числа текущего мес., если после 15-го, то со следующего.
                  * @default fromCreate
@@ -14118,7 +14574,11 @@ export interface components {
                  */
                 enabled: boolean;
                 /**
-                 * @description При продаже/покупке абонемент действует. **fromNow** - С даты продажи. **fromThisMonth** - C начала текущего месяца. **fromNextMonth** - С начала следующего месяца. **fromFirstPaidVisit** - С даты первого платного посещения/пропуска после продажи(недоступен при dynamicPrice).
+                 * @description При продаже/покупке абонемент действует.
+                 *     * `fromNow` - С даты продажи.
+                 *     * `fromThisMonth` - C начала текущего месяца.
+                 *     * `fromNextMonth` - С начала следующего месяца.
+                 *     * `fromFirstPaidVisit` - С даты первого платного посещения/пропуска после продажи(недоступен при dynamicPrice).
                  * @default auto
                  * @enum {string}
                  */
@@ -14141,6 +14601,12 @@ export interface components {
             classIds?: number[] | null;
             /** Поля, которые нужно отображать как доп. инфо в имени аб-та в виджетах и ЛК */
             fieldsToShowInNameAsAdditionalInfo?: ("price" | "visitCount" | "period")[] | null;
+            /**
+             * @description Погашать занятия в долг за прошлый период
+             * @default false
+             * @example true
+             */
+            payOffDebtForPastPeriod: boolean;
         };
         /** Абонемент */
         Subscription: {
@@ -14234,8 +14700,8 @@ export interface components {
              */
             multi?: boolean;
             params?: components["schemas"]["SubscriptionParams"];
-            createdAt?: components["schemas"]["Rate"]["createdAt"];
-            updatedAt?: components["schemas"]["Join"]["updatedAt"];
+            createdAt?: components["schemas"]["User"]["createdAt"];
+            updatedAt?: components["schemas"]["User"]["updatedAt"];
         };
         /** Список абонементов */
         Subscriptions: {
@@ -14393,8 +14859,8 @@ export interface components {
              * @example <div>Подробное описание</div>
              */
             description?: string | null;
-            createdAt?: components["schemas"]["Rate"]["createdAt"];
-            updatedAt?: components["schemas"]["Join"]["updatedAt"];
+            createdAt?: components["schemas"]["User"]["createdAt"];
+            updatedAt?: components["schemas"]["User"]["updatedAt"];
         };
         ManagerCreateRequest: components["schemas"]["Manager"] & {
             /**
@@ -14486,7 +14952,7 @@ export interface components {
              * @example МСК
              */
             shortName: string;
-            createdAt: components["schemas"]["Rate"]["createdAt"];
+            createdAt: components["schemas"]["User"]["createdAt"];
             /**
              * @description Временная зона
              * @example Europe/Moscow
@@ -14560,7 +15026,7 @@ export interface components {
              * @enum {string}
              */
             status: "active" | "archive";
-            createdAt: components["schemas"]["Rate"]["createdAt"];
+            createdAt: components["schemas"]["User"]["createdAt"];
             /**
              * Format: int64
              * @description ID Филиала
@@ -14619,7 +15085,7 @@ export interface components {
             siteUrl?: string | null;
             /** @description Длинное описание программы (поддерживается html) */
             description?: string | null;
-            createdAt: components["schemas"]["Rate"]["createdAt"];
+            createdAt: components["schemas"]["User"]["createdAt"];
             /**
              * @description Тип программы. **course** - курс, **master** - мастер-класс, **personal** - индивидуальное занятие
              * @example course
@@ -14662,7 +15128,7 @@ export interface components {
         /** @description Признак группы */
         ClassAttribute: {
             id?: components["schemas"]["Task"]["id"];
-            name: components["schemas"]["ClassUpdateBase"]["name"];
+            name: components["schemas"]["ClassCreateBase"]["name"];
             /**
              * @description Вид признака. **string** – текст, **number** – число, **boolean** – чекбокс, **select** – выбор.
              * @example string
@@ -14671,32 +15137,16 @@ export interface components {
             type: "string" | "number" | "boolean";
             /** @description Алиас */
             alias: string;
-            inClass: components["schemas"]["ClassAttribute"]["oneOf"]["1"]["inClass"];
-            /**
-             * @description Отображать в "строке" группы в списке групп
-             * @default false
-             */
-            addition: boolean;
-            required: components["schemas"]["ClassAttribute"]["oneOf"]["1"]["required"];
-            order: components["schemas"]["ClassAttribute"]["oneOf"]["1"]["order"];
-            createdAt?: components["schemas"]["Rate"]["createdAt"];
-            updatedAt?: components["schemas"]["Join"]["updatedAt"];
-        } | {
-            id?: components["schemas"]["Task"]["id"];
-            name: components["schemas"]["ClassUpdateBase"]["name"];
-            /**
-             * @description Вид признака. **string** – текст, **number** – число, **boolean** – чекбокс, **select** – выбор.
-             * @example select
-             * @enum {string}
-             */
-            type: "select";
-            alias: components["schemas"]["ClassAttribute"]["oneOf"]["0"]["alias"];
             /**
              * @description Активировать признак
              * @default false
              */
             inClass: boolean;
-            addition: components["schemas"]["ClassAttribute"]["oneOf"]["0"]["addition"];
+            /**
+             * @description Отображать в "строке" группы в списке групп
+             * @default false
+             */
+            addition: boolean;
             /**
              * @description Обязательно для заполнения
              * @default false
@@ -14708,6 +15158,22 @@ export interface components {
              * @default 0
              */
             order: number;
+            createdAt?: components["schemas"]["User"]["createdAt"];
+            updatedAt?: components["schemas"]["User"]["updatedAt"];
+        } | {
+            id?: components["schemas"]["Task"]["id"];
+            name: components["schemas"]["ClassCreateBase"]["name"];
+            /**
+             * @description Вид признака. **string** – текст, **number** – число, **boolean** – чекбокс, **select** – выбор.
+             * @example select
+             * @enum {string}
+             */
+            type: "select";
+            alias: components["schemas"]["ClassAttribute"]["oneOf"]["0"]["alias"];
+            inClass: components["schemas"]["ClassAttribute"]["oneOf"]["0"]["inClass"];
+            addition: components["schemas"]["ClassAttribute"]["oneOf"]["0"]["addition"];
+            required: components["schemas"]["ClassAttribute"]["oneOf"]["0"]["required"];
+            order: components["schemas"]["ClassAttribute"]["oneOf"]["0"]["order"];
             /**
              * @description Варианты выбора. Только для признаков с типом select.
              * @example [
@@ -14723,10 +15189,10 @@ export interface components {
              */
             selectFields: {
                 id?: components["schemas"]["Task"]["id"];
-                name?: components["schemas"]["ClassUpdateBase"]["name"];
+                name?: components["schemas"]["ClassCreateBase"]["name"];
             }[];
-            createdAt?: components["schemas"]["Rate"]["createdAt"];
-            updatedAt?: components["schemas"]["Join"]["updatedAt"];
+            createdAt?: components["schemas"]["User"]["createdAt"];
+            updatedAt?: components["schemas"]["User"]["updatedAt"];
         };
         /** @description Признак группы */
         ClassAttributeValue: {
@@ -14787,7 +15253,7 @@ export interface components {
              * @enum {string}
              */
             status: "opened" | "closed" | "archive";
-            createdAt: components["schemas"]["Rate"]["createdAt"];
+            createdAt: components["schemas"]["User"]["createdAt"];
             /**
              * Format: int64
              * @description ID программы
@@ -14882,6 +15348,21 @@ export interface components {
                  */
                 debt?: number;
             };
+            /** @description Статистика о загруженности группы */
+            readonly joinsStats?: {
+                joinStateId?: components["schemas"]["ClassStatusRequest"]["joinStateToComplete"]["items"];
+                /**
+                 * Format: int32
+                 * @description Кол-во учеников
+                 * @example 2
+                 */
+                count?: number;
+            }[];
+            /**
+             * @description Обязательно указывать преподавателя в занятиях. Всегда `true` при `courseType` = `2`
+             * @example true
+             */
+            requireTeachersInLessons?: boolean;
         } & ({
             /** @description Доступ к материалам занятий. **always** - открыто, **subExists** - при наличии абонемента */
             lessonSettings?: {
@@ -15069,25 +15550,25 @@ export interface components {
                      * @default always
                      * @enum {string}
                      */
-                    webinarAccess: "subExists";
+                    webinarAccess: "always" | "subExists";
                     /**
                      * @description Доступ к видео
                      * @default always
                      * @enum {string}
                      */
-                    videoAccess: "subExists";
+                    videoAccess: "always" | "subExists";
                     /**
                      * @description Доступ к заданию на урок
                      * @default always
                      * @enum {string}
                      */
-                    lessonTaskAccess: "subExists";
+                    lessonTaskAccess: "always" | "subExists";
                     /**
                      * @description Доступ к домашнему заданию
                      * @default always
                      * @enum {string}
                      */
-                    homeTaskAccess: "subExists";
+                    homeTaskAccess: "always" | "subExists";
                 };
                 /** @description Настройка отработок */
                 workOff?: {
@@ -15145,25 +15626,25 @@ export interface components {
                      * @default always
                      * @enum {string}
                      */
-                    webinarAccess: "invoiceFullPay" | "invoiceHalfPay";
+                    webinarAccess: "always" | "invoiceFullPay" | "invoiceHalfPay";
                     /**
                      * @description Доступ к видео
                      * @default always
                      * @enum {string}
                      */
-                    videoAccess: "invoiceFullPay" | "invoiceHalfPay";
+                    videoAccess: "always" | "invoiceFullPay" | "invoiceHalfPay";
                     /**
                      * @description Доступ к заданию на урок
                      * @default always
                      * @enum {string}
                      */
-                    lessonTaskAccess: "invoiceFullPay" | "invoiceHalfPay";
+                    lessonTaskAccess: "always" | "invoiceFullPay" | "invoiceHalfPay";
                     /**
                      * @description Доступ к домашнему заданию
                      * @default always
                      * @enum {string}
                      */
-                    homeTaskAccess: "invoiceFullPay" | "invoiceHalfPay";
+                    homeTaskAccess: "always" | "invoiceFullPay" | "invoiceHalfPay";
                 };
                 /** @description Счета */
                 invoices?: {
@@ -15216,7 +15697,8 @@ export interface components {
             };
         };
         ClassCreateBase: {
-            name?: components["schemas"]["ClassUpdateBase"]["name"];
+            /** @description Название */
+            name?: string;
             /**
              * Format: int32
              * @description Максимальное количество студентов в группе. Если у вас ограничено кол-во мест на самих занятиях, укажите это при создании самих занятий. Кол-во мест в группе при этом можете оставить не заполненным.
@@ -15283,6 +15765,12 @@ export interface components {
             }[];
             /** @description Параметры группы */
             params?: {
+                /**
+                 * @description Обязательно указывать преподавателя в занятиях. Всегда `true` при `courseType` = `2`
+                 * @default false
+                 * @example true
+                 */
+                requireTeachersInLessons: boolean;
                 /**
                  * @description Отображать в лич. кабинете учеников
                  * @default true
@@ -15390,10 +15878,7 @@ export interface components {
              * @example false
              */
             showDates: boolean;
-            /**
-             * @description Обязательно при showDates = true. Дата начала занятий должна быть в формате DD.MM.YYYY HH:mm. Пример 19.12.2024 06:55
-             * @example 19.12.2024 06:55
-             */
+            /** @description Обязательно при showDates = true. Поддерживаемые форматы: новый YYYY-MM-DD HH:mm или YYYY-MM-DD HH:mm:ss (например, "2024-12-19 06:55" или "2024-12-19 06:55:00"), ISO 8601 со смещением часового пояса (например, "2024-12-19T06:55:00+03:00"), устаревший DD.MM.YYYY HH:mm (например, "19.12.2024 06:55"). Если смещение часового пояса не указано, время интерпретируется в UTC. */
             beginDate?: string;
             /**
              * Format: int32
@@ -15418,13 +15903,14 @@ export interface components {
              * @example false
              */
             showDates: boolean;
+            beginDate?: components["schemas"]["ClassCreateCourse"]["allOf"]["0"]["beginDate"];
             /**
-             * @description Обязательно при showDates = true. Дата начала занятий должна быть в формате DD.MM.YYYY HH:mm.
-             * @example 19.12.2024 06:55
+             * @description Время начала занятия в UTC. Используется при showDates = true. Если не передано, время берётся из beginDate.
+             * @example 09:00
              */
-            beginDate?: string;
+            tmStart?: string;
             /**
-             * @description Обязательно при showDates = true. Время конца
+             * @description Обязательно при showDates = true. Время конца занятия в UTC
              * @example 09:00
              */
             tmEnd?: string;
@@ -15461,8 +15947,7 @@ export interface components {
             payType?: unknown;
         } & components["schemas"]["ClassTypeOne"] & unknown);
         ClassUpdateBase: {
-            /** @description Название */
-            name?: string;
+            name?: components["schemas"]["ClassCreateBase"]["name"];
             filialId?: components["schemas"]["Class"]["filialId"];
             /**
              * Format: int32
@@ -15502,6 +15987,11 @@ export interface components {
             showInSite?: boolean;
             /** @description Параметры группы */
             params?: {
+                /**
+                 * @description Обязательно указывать преподавателя в занятиях. Всегда `true` при `courseType` = `2`
+                 * @example true
+                 */
+                requireTeachersInLessons?: boolean;
                 /** @description Отображать в лич. кабинете учеников */
                 showInLK?: boolean;
                 /** @description Отмена занятий из личного кабинета учеников */
@@ -15577,11 +16067,7 @@ export interface components {
              * @example false
              */
             showDates: boolean;
-            /**
-             * @description Обязательно при showDates = true. Дата начала занятий должна быть в формате DD.MM.YYYY HH:mm.
-             * @example 19.12.2024 06:55
-             */
-            beginDate?: string;
+            beginDate?: components["schemas"]["ClassCreateCourse"]["allOf"]["0"]["beginDate"];
             /**
              * Format: int32
              * @description ID программы
@@ -15602,11 +16088,7 @@ export interface components {
              * @example false
              */
             showDates: boolean;
-            /**
-             * @description Обязательно при showDates = true. Дата начала занятий должна быть в формате DD.MM.YYYY HH:mm
-             * @example 19.12.2024 06:55
-             */
-            beginDate?: string;
+            beginDate?: components["schemas"]["ClassCreateCourse"]["allOf"]["0"]["beginDate"];
             /**
              * Format: int32
              * @description ID Мастер-класса/урока
@@ -15744,8 +16226,8 @@ export interface components {
              * @example 2025-01-16
              */
             date?: string;
-            createdAt?: components["schemas"]["Rate"]["createdAt"];
-            updatedAt?: components["schemas"]["Join"]["updatedAt"];
+            createdAt?: components["schemas"]["User"]["createdAt"];
+            updatedAt?: components["schemas"]["User"]["updatedAt"];
         };
         /** Список нерабочего времени */
         BusyTimes: {
@@ -15783,7 +16265,7 @@ export interface components {
              * @example 09:40
              */
             endTime: string;
-            createdAt?: components["schemas"]["Rate"]["createdAt"];
+            createdAt?: components["schemas"]["User"]["createdAt"];
             filialId: components["schemas"]["Class"]["filialId"];
             /**
              * Format: int64
@@ -16837,7 +17319,7 @@ export interface components {
             readonly yield?: number;
             bill?: components["schemas"]["UserBill"];
             userSubscription?: components["schemas"]["UserSubscription"];
-            createdAt?: components["schemas"]["Rate"]["createdAt"];
+            createdAt?: components["schemas"]["User"]["createdAt"];
             /** @description Id записи на пропущенное занятие (для отработки) */
             missedLessonRecordId?: number;
         };
@@ -17200,20 +17682,10 @@ export interface components {
             stats?: components["schemas"]["JoinStats"];
             comment?: components["schemas"]["Lesson"]["comment"] & unknown;
             advSourceId?: components["schemas"]["User"]["advSourceId"];
-            /**
-             * Format: int32
-             * @description ID способа заведения (как заведена карточка)
-             * @example 56
-             */
-            createSourceId?: number | null;
+            createSourceId?: components["schemas"]["User"]["createSourceId"];
             utms?: components["schemas"]["utms"];
-            /**
-             * Format: date-time
-             * @description Дата изменения
-             * @example 2019-06-12T13:00:12.000Z
-             */
-            readonly updatedAt?: string;
-            createdAt?: components["schemas"]["Rate"]["createdAt"];
+            updatedAt?: components["schemas"]["User"]["updatedAt"];
+            createdAt?: components["schemas"]["User"]["createdAt"];
             /**
              * @description Теги
              * @example [
@@ -17263,7 +17735,7 @@ export interface components {
             autoDebit?: boolean;
             comment?: components["schemas"]["Lesson"]["comment"] & unknown;
             advSourceId?: components["schemas"]["User"]["advSourceId"];
-            createSourceId: components["schemas"]["Join"]["createSourceId"];
+            createSourceId: components["schemas"]["User"]["createSourceId"];
             managerId?: unknown & components["schemas"]["Contract"]["managerId"];
             utms?: components["schemas"]["utms"];
             params?: components["schemas"]["JoinParams"] & unknown;
@@ -17456,9 +17928,9 @@ export interface components {
                  * @example Начальный
                  */
                 name: string;
-                createdAt?: components["schemas"]["Rate"]["createdAt"];
+                createdAt?: components["schemas"]["User"]["createdAt"];
             }[];
-            createdAt: components["schemas"]["Rate"]["createdAt"];
+            createdAt: components["schemas"]["User"]["createdAt"];
         };
         /** Задача */
         Task: {
@@ -17517,19 +17989,19 @@ export interface components {
              */
             managerIds?: number[];
             /**
-             * Format: int64
+             * Format: int32
              * @description ID ученика
              * @example 300
              */
             userId?: number | null;
             /**
-             * Format: int64
+             * Format: int32
              * @description ID сотрудника, который создал задачу, null при автоматическом создании
              * @example 300
              */
             ownerId?: number | null;
             /**
-             * Format: int64
+             * Format: int32
              * @deprecated
              * @description ID группы
              * @example 400
@@ -17545,7 +18017,7 @@ export interface components {
              */
             classIds?: number[] | null;
             /**
-             * Format: int64
+             * Format: int32
              * @deprecated
              * @description ID филиала
              * @example 300
@@ -17561,12 +18033,12 @@ export interface components {
              */
             filialIds?: number[] | null;
             /**
-             * Format: int64
+             * Format: int32
              * @description ID категории задачи
              * @example 1
              */
             categoryId?: number | null;
-            createdAt?: components["schemas"]["Rate"]["createdAt"];
+            createdAt?: components["schemas"]["User"]["createdAt"];
         };
         /** Категория задачи */
         TaskCategory: {
@@ -17855,8 +18327,8 @@ export interface components {
              * @example 1
              */
             managerId?: number | null;
-            updatedAt?: components["schemas"]["Join"]["updatedAt"];
-            createdAt?: components["schemas"]["Rate"]["createdAt"];
+            updatedAt?: components["schemas"]["User"]["updatedAt"];
+            createdAt?: components["schemas"]["User"]["createdAt"];
         };
         /** Комментарии */
         UserCommentEdit: {
@@ -17904,6 +18376,8 @@ export interface components {
             secret: string;
             /** @description Объект, инициировавший событие */
             object?: Record<string, never>;
+            /** @description ID события */
+            event_id?: string;
         };
         /** Событие в VK рекламе */
         VkAdsEvent: {
@@ -17943,7 +18417,7 @@ export interface components {
             files?: components["schemas"]["LessonFile"][];
             /** @description Текст задания в формате HTML */
             text?: string;
-            createdAt?: components["schemas"]["Rate"]["createdAt"];
+            createdAt?: components["schemas"]["User"]["createdAt"];
         };
         /** Задание на дом */
         HomeTask: {
@@ -17951,7 +18425,7 @@ export interface components {
             files?: components["schemas"]["LessonFile"][];
             /** @description Текст задания в формате HTML */
             text?: string;
-            createdAt?: components["schemas"]["Rate"]["createdAt"];
+            createdAt?: components["schemas"]["User"]["createdAt"];
         };
         /** Код ограничения доступа */
         RestrictError: {
@@ -18098,7 +18572,7 @@ export interface components {
              * @example 5
              */
             value?: number;
-            createdAt?: components["schemas"]["Rate"]["createdAt"];
+            createdAt?: components["schemas"]["User"]["createdAt"];
         };
         /** Комментарий к ответу на задание */
         TaskAnswerCommentCreate: {
@@ -18262,7 +18736,7 @@ export interface components {
              * @example Иван Иванов
              */
             managerName?: string;
-            createdAt?: components["schemas"]["Rate"]["createdAt"];
+            createdAt?: components["schemas"]["User"]["createdAt"];
         };
         /** Обрезанные данные ответа на задание (без текста ответа) */
         ShortTaskAnswer: {
@@ -18322,7 +18796,7 @@ export interface components {
             readonly comments?: components["schemas"]["TaskAnswerComment"][];
             /** @description Файлы прикрепленные к ответу */
             readonly files?: components["schemas"]["LessonFile"][];
-            createdAt?: components["schemas"]["Rate"]["createdAt"];
+            createdAt?: components["schemas"]["User"]["createdAt"];
         };
         /** Данные создаваемого ответа */
         TaskAnswerCreateUser: {
@@ -18443,6 +18917,12 @@ export interface components {
              */
             endDate?: string | null;
             /**
+             * Format: date
+             * @description Дата удаления абонемент, при неполной оплате. `null` для отключения функционала
+             * @example 2026-03-20
+             */
+            deleteNonPaidAt?: string | null;
+            /**
              * Format: double
              * @description Стоимость при продаже
              * @example 1100
@@ -18509,7 +18989,7 @@ export interface components {
         /** @description Абонемент ученика */
         UserSubscription: {
             /**
-             * Format: int64
+             * Format: int32
              * @description ID
              * @example 1
              */
@@ -18520,7 +19000,7 @@ export interface components {
              */
             externalId?: string | null;
             /**
-             * Format: int64
+             * Format: int32
              * @description ID ученика
              */
             userId: number;
@@ -18582,6 +19062,12 @@ export interface components {
              * @example 2019-06-14
              */
             readonly overDate?: string | null;
+            /**
+             * Format: date
+             * @description Дата удаления абонемент, при неполной оплате
+             * @example 2026-03-20
+             */
+            readonly deleteNonPaidAt?: string | null;
             /**
              * Format: double
              * @description Оплаченная сумма
@@ -18768,7 +19254,7 @@ export interface components {
         ContractCreate: {
             userId?: components["schemas"]["Join"]["userId"];
             /**
-             * Format: int64
+             * Format: int32
              * @description ID шаблона для генерации номера документа
              */
             docNumTemplateId?: number | null;
@@ -18805,7 +19291,7 @@ export interface components {
             dateTo?: string | null;
             managerId?: components["schemas"]["Contract"]["managerId"];
             /**
-             * Format: int64
+             * Format: int32
              * @description ID состояния 1 - заключен, 2 - расторгнут. Поле используется только в типе contract
              * @default 1
              * @enum {integer}
@@ -18848,7 +19334,7 @@ export interface components {
              */
             academHours?: number | null;
             /**
-             * Format: int64
+             * Format: int32
              * @description Кол-во занятий. Поле используется только в типе contract
              * @example 1
              */
@@ -18894,7 +19380,7 @@ export interface components {
              */
             dateTo?: string | null;
             /**
-             * Format: int64
+             * Format: int32
              * @description ID состояния 1 - заключен, 2 - расторгнут. Поле используется только в типе contract
              * @default 1
              * @enum {integer}
@@ -18925,7 +19411,7 @@ export interface components {
              */
             endStudyDate?: string | null;
             /**
-             * Format: int64
+             * Format: int32
              * @description Кол-во занятий. Поле используется только в типе contract
              * @example 1
              */
@@ -19227,7 +19713,7 @@ export interface components {
              * @example В этой группировке находятся только мультиабонементы
              */
             description?: string | null;
-            createdAt?: components["schemas"]["Rate"]["createdAt"];
+            createdAt?: components["schemas"]["User"]["createdAt"];
         };
         /** Касса */
         CashboxEdit: {
@@ -19607,6 +20093,74 @@ export interface components {
              */
             comment?: string;
         };
+        /** Запрос генерации документа */
+        DocumentGenerateRequest: {
+            /**
+             * Format: int32
+             * @description ID шаблона документа
+             * @example 65
+             */
+            templateId: number;
+            userId: components["schemas"]["Join"]["userId"];
+            /**
+             * Format: int32
+             * @description ID договора
+             * @example 123
+             */
+            contractId?: number | null;
+            /**
+             * @description Формат выходного файла
+             * @example pdf
+             * @enum {string}
+             */
+            format: "pdf" | "docx";
+        };
+        /** Сгенерированный документ */
+        DocumentGenerateResponse: {
+            /**
+             * @description Файл в формате base64
+             * @example data:application/pdf;base64,...
+             */
+            file?: string;
+            /**
+             * @description Имя файла
+             * @example Договор оферты_Иванов Иван.pdf
+             */
+            filename?: string;
+        };
+        /**
+         * Запрос смены статуса группы
+         * @description Новый статус группы. При архивации (statusId = 0) можно дополнительно завершить записи учеников: записи в статусах из joinStateToComplete будут переведены в "завершил" с причиной reasonId и комментарием comment.
+         */
+        ClassStatusRequest: {
+            /**
+             * Format: int32
+             * @description Статус группы: 0 — Группа в архиве, 1 — Набор открыт, 2 — Набор закрыт
+             * @example 1
+             * @enum {integer}
+             */
+            statusId: 0 | 1 | 2;
+            /**
+             * @description Завершить записи учеников при архивации (только при statusId = 0)
+             * @example true
+             */
+            completeJoins?: boolean;
+            /**
+             * @description Статусы записей, которые нужно перевести в "завершил" (обязателен при completeJoins = true). Передайте [0], чтобы завершить все записи
+             * @example [
+             *       2,
+             *       3
+             *     ]
+             */
+            joinStateToComplete?: number[];
+            /**
+             * Format: int32
+             * @description ID причины завершения записей (обязателен при completeJoins = true)
+             * @example 1
+             */
+            reasonId?: number;
+            comment?: components["schemas"]["Lesson"]["comment"];
+        };
     };
     responses: never;
     parameters: {
@@ -19755,6 +20309,8 @@ export interface components {
         includeLessons: boolean;
         /** @description Включить в ответ данные о списании */
         includeBills: boolean;
+        /** @description Показать только оплаченные/неоплаченные записи на занятия */
+        hasBills: boolean;
         /** @description Занятия в долг (не оплаченные) */
         debt: boolean;
         /** @description Статус задачи, завершена или нет. */
@@ -19846,6 +20402,8 @@ export interface components {
         clientStateId: number[];
         /** @description Включить в ответ общую информацию по долгу и доходу */
         includeStats: boolean;
+        /** @description Включить в ответ информацию о загруженности группы */
+        includeJoinsStats: boolean;
         /**
          * @description Массив с ID учеников
          * @example 42

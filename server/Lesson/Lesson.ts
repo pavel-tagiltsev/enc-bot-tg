@@ -19,4 +19,12 @@ export class Lesson {
 
     return isNoVisits && isNoReasonComment && isCompleted;
   }
+
+  public isPastScheduled(currentDate: Date): boolean {
+    const lessonDateTime = new Date(this.date);
+    const [hours, minutes] = this.beginTime.split(':').map(Number);
+    lessonDateTime.setHours(hours, minutes, 0, 0);
+
+    return this.status === 'scheduled' && lessonDateTime < currentDate;
+  }
 }
