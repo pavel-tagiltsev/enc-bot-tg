@@ -1,12 +1,19 @@
 export type LessonStatus = 'completed' | 'scheduled';
 
+export interface LessonRecord {
+  visit?: boolean;
+  studentId?: number;
+  paid?: boolean;
+  bill?: unknown;
+}
+
 export class Lesson {
   constructor(
     public readonly id: number,
     public readonly date: Date,
     public readonly beginTime: string,
     public readonly groupId: number,
-    public readonly records: { visit?: boolean; studentId?: number }[],
+    public readonly records: LessonRecord[],
     public readonly teacherIds: number[],
     public readonly comment?: string,
     public readonly status?: LessonStatus
@@ -26,5 +33,9 @@ export class Lesson {
     lessonDateTime.setHours(hours, minutes, 0, 0);
 
     return this.status === 'scheduled' && lessonDateTime < currentDate;
+  }
+
+  public get unbilledPaidRecords(): LessonRecord[] {
+    return this.records.filter((record) => record.paid === true && record.bill == null);
   }
 }

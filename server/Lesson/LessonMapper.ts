@@ -9,7 +9,12 @@ const LessonDTOSchema = z.object({
   date: z.string(),
   beginTime: z.string(),
   classId: z.number(),
-  records: z.array(z.object({ visit: z.boolean().optional(), userId: z.number().optional() })).optional().default([]),
+  records: z.array(z.object({
+    visit: z.boolean().optional(),
+    userId: z.number().optional(),
+    paid: z.boolean().optional().default(true),
+    bill: z.unknown().optional().nullable(),
+  })).optional().default([]),
   teacherIds: z.array(z.number()).optional().default([]),
   comment: z.string().nullable().optional(),
   status: z.number().optional(),
@@ -28,6 +33,8 @@ export class LessonMapper {
     const records = validatedDTO.records.map(record => ({
       visit: record.visit,
       studentId: record.userId,
+      paid: record.paid,
+      bill: record.bill ?? undefined,
     }));
 
     return new Lesson(

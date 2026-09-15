@@ -29,6 +29,18 @@ interface Teacher {
   name: string;
 }
 
+interface UnbilledPaidStudent {
+  id: number;
+  name: string;
+}
+
+interface UnbilledPaidLessonsData {
+  students: UnbilledPaidStudent[];
+  stats: {
+    totalStudents: number;
+  };
+}
+
 interface UnmarkedLessonsData {
   title: string;
   teachers: Teacher[];
@@ -124,6 +136,23 @@ export default class View {
           ${lessonsList.join(View.#HTMLEntities.NEW_LINE)}
           ${isLastTeacher ? '' : View.#decorElements.LINE}
         `;
+        })
+        .join(View.#HTMLEntities.NEW_LINE)}
+    `;
+  }
+
+  static renderUnbilledPaidLessonsNotificationTemplate(data: UnbilledPaidLessonsData): string {
+    const studentsSorted = data.students.sort((a, b) => a.name.localeCompare(b.name));
+
+    return View.htmlTemplate`
+      <b>Посещения в долг</b>
+      ${View.#HTMLEntities.NEW_LINE}
+      <b>Всего учеников: ${data.stats.totalStudents}</b>
+      ${View.#HTMLEntities.NEW_LINE}
+      ${studentsSorted
+        .map((student) => {
+          const link = `https://app.moyklass.com/user/${student.id}/payments?view=invoices`;
+          return `💸 <a href="${link}">${student.name}</a>`;
         })
         .join(View.#HTMLEntities.NEW_LINE)}
     `;
